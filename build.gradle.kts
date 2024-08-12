@@ -1,6 +1,8 @@
 plugins {
     kotlin("jvm") version "2.0.0"
     `maven-publish`
+// TODO reenable signing
+//    signing
 }
 
 group = "de.db.moredux"
@@ -19,12 +21,14 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
 kotlin {
     jvmToolchain(17)
 }
 
-val sourcesJar by tasks.registering(Jar::class) {
-    from(sourceSets.main.get().allSource)
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 publishing {
@@ -70,5 +74,15 @@ publishing {
             val snapshotsRepoUrl = uri(layout.buildDirectory.dir("repos/snapshots"))
             url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
         }
+    }
+}
+// TODO reenable signing
+//signing {
+//    sign(publishing.publications["mavenJava"])
+//}
+
+tasks.javadoc {
+    if (JavaVersion.current().isJava9Compatible) {
+        (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
     }
 }
