@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.db.moredux.de.db.moredux
+package de.db.moredux
 // TODO kdoc still fine?
 /**
  * The entity that needs to be notified of state changes has to implement this interface

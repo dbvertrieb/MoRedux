@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.db.moredux.de.db.moredux
+package de.db.moredux
 
 // TODO Move the MutableLiveData dependent Selector to another OS project, that provides Android Livecycle Utilities
 // TODO Same with Compose State support

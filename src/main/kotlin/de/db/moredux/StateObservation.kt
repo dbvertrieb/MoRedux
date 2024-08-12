@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.db.moredux.de.db.moredux
+package de.db.moredux
 
 // TODO kdoc stil fine ?
 // TODO refactor - move all none basic add / remove into Extensions (extending Store)

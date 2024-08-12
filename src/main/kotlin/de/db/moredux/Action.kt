@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.db.moredux.de.db.moredux
+package de.db.moredux
 
 // TODO KDoc
 interface Action

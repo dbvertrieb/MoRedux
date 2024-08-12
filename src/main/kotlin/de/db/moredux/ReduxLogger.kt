@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.db.moredux.de.db.moredux
+package de.db.moredux
 
 import java.util.logging.Level
 import java.util.logging.Logger
