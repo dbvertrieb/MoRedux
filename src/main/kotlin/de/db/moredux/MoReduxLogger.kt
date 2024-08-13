@@ -24,7 +24,7 @@ import kotlin.reflect.KClass
  * This logging helper ensures independence from platform specific logging frameworks and provides a
  * fallback logging, that uses native Java logging mechanisms.
  */
-internal object MoReduxLogger {
+object MoReduxLogger {
 
     /**
      * Default logger name / log tag
