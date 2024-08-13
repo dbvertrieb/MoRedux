@@ -24,7 +24,7 @@ import kotlin.reflect.KClass
  * This logging helper ensures independence from platform specific logging frameworks and provides a
  * fallback logging, that uses native Java logging mechanisms.
  */
-object MoReduxLogger {
+internal object MoReduxLogger {
 
     /**
      * Default logger name / log tag
@@ -37,7 +37,7 @@ object MoReduxLogger {
     fun d(clazz: KClass<*>, logMode: MoReduxSettings.LogMode, message: String) {
         if (isAllowed(logMode)) {
             MoReduxSettings.logDebug
-                ?.let { it(getLogTag(clazz), message) }
+                ?.let { customLogger -> customLogger(getLogTag(clazz), message) }
                 ?: getLogger(clazz).log(Level.FINE, message)
         }
     }
@@ -48,7 +48,7 @@ object MoReduxLogger {
     fun w(clazz: KClass<*>, logMode: MoReduxSettings.LogMode, message: String) {
         if (isAllowed(logMode)) {
             MoReduxSettings.logWarn
-                ?.let { it(getLogTag(clazz), message) }
+                ?.let { customLogger -> customLogger(getLogTag(clazz), message) }
                 ?: getLogger(clazz).log(Level.WARNING, message)
         }
     }
