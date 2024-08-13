@@ -35,7 +35,7 @@ class Store<STATE : State> private constructor(
     val state: STATE
         get() = _state.clone() as STATE
 
-    val observation = StateObservation(state)
+    internal val observationManager = ObservationManager(state)
 
     /**
      * Teardown this store:
@@ -44,7 +44,7 @@ class Store<STATE : State> private constructor(
      * - clear the reducer list
      */
     fun teardown() {
-        observation.teardown()
+        observationManager.teardown()
         reducers.values.forEach { it.teardown() }
         reducers.clear()
     }
@@ -104,7 +104,7 @@ class Store<STATE : State> private constructor(
             MoReduxSettings.LogMode.FULL,
             "%d - republish current state".format(currentDispatchCount)
         )
-        observation.onStateChanged(currentDispatchCount, state)
+        observationManager.onStateChanged(currentDispatchCount, state)
     }
 
     /**
@@ -134,7 +134,7 @@ class Store<STATE : State> private constructor(
                 "%d - Store new state".format(currentDispatchCount)
             )
             _state = reducerResult.state
-            observation.onStateChanged(currentDispatchCount, state)
+            observationManager.onStateChanged(currentDispatchCount, state)
         } else {
             MoReduxLogger.d(
                 this::class,

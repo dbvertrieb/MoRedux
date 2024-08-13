@@ -30,7 +30,7 @@ class StoreTest {
             .registerReducer<TestAction2> { state, _ -> state }
             .build()
         val callbackState = mutableListOf<StoreState>()
-        store.observation.addStateObserver { state -> callbackState.add(state) }
+        store.addStateObserver { state -> callbackState.add(state) }
 
         // When
         store.teardown()
@@ -75,7 +75,7 @@ class StoreTest {
             .build()
 
         val callbackState = mutableListOf<StoreState>()
-        store.observation.addStateObserver { state -> callbackState.add(state) }
+        store.addStateObserver { state -> callbackState.add(state) }
 
         // When
         val wasDispatched = store.dispatch(TestAction1)
@@ -98,7 +98,7 @@ class StoreTest {
             .build()
 
         val callbackState = mutableListOf<StoreState>()
-        store.observation.addStateObserver { state -> callbackState.add(state) }
+        store.addStateObserver { state -> callbackState.add(state) }
 
         // When
         store.dispatch(TestAction1)
@@ -121,7 +121,7 @@ class StoreTest {
             .build()
 
         val callbackState = mutableListOf<StoreState>()
-        store.observation.addStateObserver { state -> callbackState.add(state) }
+        store.addStateObserver { state -> callbackState.add(state) }
 
         // When
         store.dispatch(TestAction1)
@@ -143,7 +143,7 @@ class StoreTest {
             .build()
 
         val callbackState = mutableListOf<StoreState>()
-        store.observation.addStateObserver { state -> callbackState.add(state) }
+        store.addStateObserver { state -> callbackState.add(state) }
 
         // When
         store.dispatch(TestAction1)

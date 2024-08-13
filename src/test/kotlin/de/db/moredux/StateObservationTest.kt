@@ -21,43 +21,9 @@ import org.junit.jupiter.api.Test
 
 class StateObservationTest {
 
-    private val sut = StateObservation(StateObservationState())
-// TODO rewrite to stateFlow
-//
-//    @Test
-//    fun `test addSelector as Selector instance with no post and onStateChanged`() {
-//        // Given
-//        val selector = object : Selector<StateObservationState, String>(usePost = false) {
-//            override fun map(state: StateObservationState): String =
-//                state.bla ?: "Ist leer"
-//        }
-//
-//        // When
-//        sut.addSelector(false, selector)
-//        sut.onStateChanged(0, StateObservationState(bla = "State counter 0"))
-//
-//        // Then
-//        assertThat(selector.value).isEqualTo("State counter 0")
-//    }
-//
-//    @Test
-//    fun `test addSelector as callback with post and processCurrentStateImmediately`() {
-//        // When
-//        val selector = sut.addSelector(true) { state -> state.bla ?: "Ist leer" }
-//
-//        // Then
-//        assertThat(selector.value).isEqualTo("Ist leer")
-//    }
-//
-//    @Test
-//    fun `test addSelector as callback with post and onStateChanged`() {
-//        // When
-//        val selector = sut.addSelector(false) { state -> state.bla ?: "Ist leer" }
-//        sut.onStateChanged(0, StateObservationState(bla = "State counter 0"))
-//
-//        // Then
-//        assertThat(selector.value).isEqualTo("State counter 0")
-//    }
+    private val store: Store<StateObservationState> = Store.Builder<StateObservationState>()
+        .withInitialState(StateObservationState())
+        .build()
 
     @Test
     fun `test addStateObserver as StateObserver instance and onStateChanged`() {
@@ -70,8 +36,11 @@ class StateObservationTest {
         }
 
         // When
-        sut.addStateObserver(false, stateObserver)
-        sut.onStateChanged(0, StateObservationState(bla = "State counter 0"))
+        store.addStateObserver(processCurrentStateImmediately = false, stateObserver = stateObserver)
+        store.observationManager.onStateChanged(
+            currentDispatchCount = 0,
+            state = StateObservationState(bla = "State counter 0")
+        )
 
         // Then
         assertThat(callbackState).hasSize(1)
@@ -89,8 +58,11 @@ class StateObservationTest {
         }
 
         // When
-        sut.addStateObserver(true, stateObserver)
-        sut.onStateChanged(0, StateObservationState(bla = "State counter 0"))
+        store.addStateObserver(processCurrentStateImmediately = true, stateObserver = stateObserver)
+        store.observationManager.onStateChanged(
+            currentDispatchCount = 0,
+            state = StateObservationState(bla = "State counter 0")
+        )
 
         // Then
         assertThat(callbackState).hasSize(2)
@@ -104,8 +76,11 @@ class StateObservationTest {
         val callbackState = mutableListOf<StateObservationState>()
 
         // When
-        sut.addStateObserver { state -> callbackState.add(state) }
-        sut.onStateChanged(0, StateObservationState(bla = "State counter 0"))
+        store.addStateObserver { state -> callbackState.add(state) }
+        store.observationManager.onStateChanged(
+            currentDispatchCount = 0,
+            state = StateObservationState(bla = "State counter 0")
+        )
 
         // Then
         assertThat(callbackState).hasSize(1)
@@ -118,8 +93,11 @@ class StateObservationTest {
         val callbackState = mutableListOf<StateObservationState>()
 
         // When
-        sut.addStateObserver(true) { state -> callbackState.add(state) }
-        sut.onStateChanged(0, StateObservationState(bla = "State counter 0"))
+        store.addStateObserver(processCurrentStateImmediately = true) { state -> callbackState.add(state) }
+        store.observationManager.onStateChanged(
+            currentDispatchCount = 0,
+            state = StateObservationState(bla = "State counter 0")
+        )
 
         // Then
         assertThat(callbackState).hasSize(2)
@@ -133,9 +111,12 @@ class StateObservationTest {
         val callbackState = mutableListOf<StateObservationState>()
 
         // When
-        sut.addStateObserver(true) { state -> callbackState.add(state) }
-        sut.addStateObserver(true) { state -> callbackState.add(state) }
-        sut.onStateChanged(0, StateObservationState(bla = "State counter 0"))
+        store.addStateObserver(processCurrentStateImmediately = true) { state -> callbackState.add(state) }
+        store.addStateObserver(processCurrentStateImmediately = true) { state -> callbackState.add(state) }
+        store.observationManager.onStateChanged(
+            currentDispatchCount = 0,
+            state = StateObservationState(bla = "State counter 0")
+        )
 
         // Then
         assertThat(callbackState).hasSize(4)
@@ -143,41 +124,6 @@ class StateObservationTest {
         assertThat(callbackState[1]).isEqualTo(StateObservationState(bla = null))
         assertThat(callbackState[2]).isEqualTo(StateObservationState(bla = "State counter 0"))
         assertThat(callbackState[3]).isEqualTo(StateObservationState(bla = "State counter 0"))
-    }
-
-    @Test
-    fun `test multiple removeStateObserver`() {
-        // Given
-        val callbackState = mutableListOf<StateObservationState>()
-        val observer1 = sut.addStateObserver(true) { state -> callbackState.add(state) }
-        sut.addStateObserver(true) { state -> callbackState.add(state) }
-
-        // When
-        sut.removeObserver(observer1)
-        sut.onStateChanged(0, StateObservationState(bla = "State counter 0"))
-
-        // Then
-        assertThat(callbackState).hasSize(3)
-        assertThat(callbackState[0]).isEqualTo(StateObservationState(bla = null))
-        assertThat(callbackState[1]).isEqualTo(StateObservationState(bla = null))
-        assertThat(callbackState[2]).isEqualTo(StateObservationState(bla = "State counter 0"))
-    }
-
-    @Test
-    fun `test teardown`() {
-        // Given
-        val callbackState = mutableListOf<StateObservationState>()
-        sut.addStateObserver(true) { state -> callbackState.add(state) }
-        sut.addStateObserver(true) { state -> callbackState.add(state) }
-
-        // When
-        sut.teardown()
-        sut.onStateChanged(0, StateObservationState(bla = "State counter 0"))
-
-        // Then
-        assertThat(callbackState).hasSize(2)
-        assertThat(callbackState[0]).isEqualTo(StateObservationState(bla = null))
-        assertThat(callbackState[1]).isEqualTo(StateObservationState(bla = null))
     }
 
     data class StateObservationState(val bla: String? = null) : State {
