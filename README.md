@@ -1,3 +1,7 @@
+![Publish release artifacts](https://github.com/dbvertrieb/MoRedux/actions/workflows/publish-release-artifacts.yml/badge.svg)
+
+![Verify code quality](https://github.com/dbvertrieb/MoRedux/actions/workflows/verify-code-quality.yml/badge.svg)
+
 # MoRedux
 Redux framework in Kotlin
 
