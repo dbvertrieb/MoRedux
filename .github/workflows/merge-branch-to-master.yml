@@ -31,8 +31,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
-      - name: Create new release tag
+      - name: Create new PATCH version tag
         run: ./gradlew release
 
-      - name: Push new release tag
+      - name: Push new version tag
         run: git push --tags
