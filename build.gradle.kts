@@ -14,6 +14,7 @@ repositories {
 // TODO version catalog
 dependencies {
     testImplementation(kotlin("test"))
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.0")
     testImplementation("com.google.truth:truth:1.4.4")
     testImplementation("org.mockito:mockito-inline:5.2.0")
 }
