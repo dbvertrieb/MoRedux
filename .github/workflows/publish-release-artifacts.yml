@@ -10,7 +10,7 @@
 name: Publish package to GitHub Packages
 on:
   release:
-    types: [created]
+    types: [ created ]
     paths-ignore:
       - '**.md'
     branches:
@@ -38,3 +38,9 @@ jobs:
         run: ./gradlew publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create new MINOR version tag
+        run: ./gradlew release -Prelease.versionIncrementer=incrementMinor
+
+      - name: Push new version tag
+        run: git push --tags
