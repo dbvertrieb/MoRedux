@@ -2,9 +2,9 @@ name: Create new PATCH version upon push to and merge into main branch
 on:
   push:
     branches:
-      - main
+      - 'main'
 jobs:
-  publish:
+  Create-new-PATCH-version:
     runs-on: ubuntu-latest
     permissions:
       contents: write
