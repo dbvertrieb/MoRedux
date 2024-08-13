@@ -16,9 +16,8 @@
 
 package de.db.moredux
 
-// TODO kdoc still fine?
 /**
- * StateObserver that transforms a simple callback into a StateObserver
+ * Class that transforms a simple callback function into a StateObserver
  */
 class CallbackStateObserver<STATE : State>(private val callback: (STATE) -> Unit) : StateObserver<STATE> {
     override fun onStateChanged(state: STATE) {

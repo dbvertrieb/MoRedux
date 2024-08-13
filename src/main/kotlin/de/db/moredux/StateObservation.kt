@@ -47,7 +47,7 @@ class StateObservation<STATE : State>(
      * Register a [select] as a Selector. The [select] will be treated like any other Selector.
      *
      * @param processCurrentStateImmediately if true, the current state will be pushed into the passed [select]
-     * @param select the [select] function maps the state [STATE] to [VALUE]. The [VALUE] is publish to the Selector
+     * @param select the [select] function maps the state [STATE] to [VALUE]. The [VALUE] is published to the Selector
      * @return the Selector instance that was constructed out of [select]
      * @see addSelector
      */
@@ -116,16 +116,16 @@ class StateObservation<STATE : State>(
         this.state = state
         stateObservers.takeIf { it.isNotEmpty() }
             ?.also {
-                ReduxLogger.d(
+                MoReduxLogger.d(
                     this::class,
-                    ReduxSettings.LogMode.FULL,
+                    MoReduxSettings.LogMode.FULL,
                     "%d - Start notifying %d observers".format(currentDispatchCount, it.size)
                 )
             }
             ?.forEach { it.onStateChanged(state) }
-            ?: ReduxLogger.d(
+            ?: MoReduxLogger.d(
                 this::class,
-                ReduxSettings.LogMode.FULL,
+                MoReduxSettings.LogMode.FULL,
                 "%d - No observers present -> Skip notifications".format(currentDispatchCount)
             )
     }

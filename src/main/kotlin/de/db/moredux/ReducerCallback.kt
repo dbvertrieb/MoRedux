@@ -15,11 +15,13 @@
  */
 
 package de.db.moredux
-// TODO kdoc still fine?
 
 /**
- * Special case of a reducer, where no special override of method [reduce] is necessary. The reduce can be defined via
- * callback function.
+ * The ReducerCallback maps a callback function to a regular Reducer, so no special class extending the abstract Reducer
+ * is necessary.
+ * The return value type of the callback function is a ReducerResult, same as the return value type of the
+ * Reducer.reduce method.
+ *
  * This simply reduces boilerplate code.
  */
 open class ReducerCallback<STATE : State, ACTION : Action>(

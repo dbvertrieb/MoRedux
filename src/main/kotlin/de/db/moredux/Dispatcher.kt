@@ -16,8 +16,15 @@
 
 package de.db.moredux
 
-// TODO KDoc
+/**
+ * All classes that are able to dispatch MoRedux actions implement this interface.
+ */
 interface Dispatcher {
 
+    /**
+     * @param action action to dispatch
+     * @return if true, the action has been reduced successfully by a registered Reducer. If false, the action has not
+     * been reduced. Could be because a Reducer is missing for [action] or the reduction failed etc.
+     */
     fun dispatch(action: Action): Boolean
 }

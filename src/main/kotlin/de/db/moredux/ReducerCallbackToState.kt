@@ -16,11 +16,13 @@
 
 package de.db.moredux
 
-// TODO kdoc still fine?
-
 /**
- * Use this Reducer, if your implementation does not return a followup action or effect.
- * This simply reduces boilerplate code.
+ * The ReducerCallback maps a callback function to a regular Reducer, so no special class extending the abstract Reducer
+ * is necessary.
+ * The return value type of the callback function is a State. This can be used in case no follow up Action or Effect
+ * are returned as result of the Reducer.
+ *
+ * This reduces even more boilerplate code, than the ReducerCallback
  */
 class ReducerCallbackToState<STATE : State, ACTION : Action>(
     val codeToState: (STATE, ACTION) -> STATE

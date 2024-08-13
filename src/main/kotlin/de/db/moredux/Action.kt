@@ -16,5 +16,8 @@
 
 package de.db.moredux
 
-// TODO KDoc
+/**
+ * Any action that is dispatched and processed by MoRedux needs to implement this interface. This gives the actions
+ * a namespace.
+ */
 interface Action

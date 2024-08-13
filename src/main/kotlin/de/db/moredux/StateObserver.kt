@@ -15,9 +15,10 @@
  */
 
 package de.db.moredux
-// TODO kdoc still fine?
+
 /**
- * The entity that needs to be notified of state changes has to implement this interface
+ * A class that implements this StateObserver is able to receive state updates of a store. A StateObserver has to be
+ * registered in the Store/stores StateObservation in order to get notifications
  */
 interface StateObserver<STATE : State> {
     /**

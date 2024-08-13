@@ -18,10 +18,11 @@ package de.db.moredux
 
 import kotlin.reflect.KClass
 
-// TODO kdoc still fine?
-
 /**
- * Abstract reducer that does some basic checking and execution of actions and an API
+ * Abstract reducer that does some basic checking and execution of actions and an API.
+ *
+ * A Reducer "reduces" a State and an Action into a new State.
+ * A Reducer operates on the main thread, so beware of heavy computing.
  */
 abstract class Reducer<STATE : State, ACTION : Action> {
 

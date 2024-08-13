@@ -59,17 +59,17 @@ class Store<STATE : State> private constructor(
      */
     override fun dispatch(action: Action): Boolean {
         val currentDispatchCount = dispatchCounter.incrementAndGet()
-        ReduxLogger.d(
+        MoReduxLogger.d(
             this::class,
-            ReduxSettings.LogMode.MINIMAL,
+            MoReduxSettings.LogMode.MINIMAL,
             "%d - Dispatch action: %s".format(currentDispatchCount, action)
         )
         return reducers.get(action::class)
             ?.takeIf { reducer -> reducer.wants(action) }
             ?.also {
-                ReduxLogger.d(
+                MoReduxLogger.d(
                     this::class,
-                    ReduxSettings.LogMode.FULL,
+                    MoReduxSettings.LogMode.FULL,
                     "%d - Found reducer %s for action %s. Start reduction ...".format(
                         currentDispatchCount,
                         it::class.simpleName,
@@ -79,9 +79,9 @@ class Store<STATE : State> private constructor(
             }
             ?.reduceInternal(state, action)
             ?.let { result ->
-                ReduxLogger.d(
+                MoReduxLogger.d(
                     this::class,
-                    ReduxSettings.LogMode.FULL,
+                    MoReduxSettings.LogMode.FULL,
                     "%d - Finished reduction of action %s".format(currentDispatchCount, action)
                 )
                 setNewState(currentDispatchCount, result)
@@ -95,9 +95,9 @@ class Store<STATE : State> private constructor(
      */
     fun republish() {
         val currentDispatchCount = dispatchCounter.get()
-        ReduxLogger.d(
+        MoReduxLogger.d(
             this::class,
-            ReduxSettings.LogMode.FULL,
+            MoReduxSettings.LogMode.FULL,
             "%d - republish current state".format(currentDispatchCount)
         )
         observation.onStateChanged(currentDispatchCount, state)
@@ -111,9 +111,9 @@ class Store<STATE : State> private constructor(
      */
     fun rehydrate(state: STATE) {
         val currentDispatchCount = dispatchCounter.incrementAndGet()
-        ReduxLogger.d(
+        MoReduxLogger.d(
             this::class,
-            ReduxSettings.LogMode.FULL,
+            MoReduxSettings.LogMode.FULL,
             "%d - rehydrate state".format(currentDispatchCount)
         )
         setNewState(currentDispatchCount, ReducerResult(state))
@@ -124,33 +124,33 @@ class Store<STATE : State> private constructor(
      */
     private fun setNewState(currentDispatchCount: Int, reducerResult: ReducerResult<STATE>) {
         if (_state != reducerResult.state) {
-            ReduxLogger.d(
+            MoReduxLogger.d(
                 this::class,
-                ReduxSettings.LogMode.FULL,
+                MoReduxSettings.LogMode.FULL,
                 "%d - Store new state".format(currentDispatchCount)
             )
             _state = reducerResult.state
             observation.onStateChanged(currentDispatchCount, state)
         } else {
-            ReduxLogger.d(
+            MoReduxLogger.d(
                 this::class,
-                ReduxSettings.LogMode.FULL,
+                MoReduxSettings.LogMode.FULL,
                 "%d - State has not changed -> Skip notifications".format(currentDispatchCount)
             )
         }
 
         reducerResult.action?.let { action ->
-            ReduxLogger.d(
+            MoReduxLogger.d(
                 this::class,
-                ReduxSettings.LogMode.FULL,
+                MoReduxSettings.LogMode.FULL,
                 "%d - Follow up action %s detected -> pass to dispatch".format(currentDispatchCount, action)
             )
             dispatch(action)
         }
         reducerResult.effect?.let { effect ->
-            ReduxLogger.d(
+            MoReduxLogger.d(
                 this::class,
-                ReduxSettings.LogMode.FULL,
+                MoReduxSettings.LogMode.FULL,
                 "%d - Effect %s detected -> start execution".format(currentDispatchCount, effect)
             )
             effect.execute(reducerResult.state, this)
@@ -184,9 +184,9 @@ class Store<STATE : State> private constructor(
         inline fun <reified ACTION : Action> registerReducer(reducer: Reducer<STATE, ACTION>): Builder<STATE> {
             // The same reducer must not be registered twice
             if (reducers.containsValue<KClass<*>, Reducer<STATE, out Action>>(reducer)) {
-                ReduxLogger.w(
+                MoReduxLogger.w(
                     this::class,
-                    ReduxSettings.LogMode.FULL,
+                    MoReduxSettings.LogMode.FULL,
                     "Reducer has already been registered -> Skipping registration"
                 )
                 return this
@@ -194,9 +194,9 @@ class Store<STATE : State> private constructor(
 
             // Make sure, that the [reducer] processes only actions that no other reducer wants to process
             if (reducers.containsKey(ACTION::class)) {
-                ReduxLogger.w(
+                MoReduxLogger.w(
                     this::class,
-                    ReduxSettings.LogMode.FULL,
+                    MoReduxSettings.LogMode.FULL,
                     "Reducer wants action (%s) that is already wanted by an already registered reducer (%s) as well " +
                             "-> Skipping registration".format(
                                 ACTION::class.simpleName,

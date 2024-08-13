@@ -16,7 +16,9 @@
 
 package de.db.moredux
 
-// TODO kdoc
+/**
+ * The result of a Reducers reduce method
+ */
 data class ReducerResult<STATE : State>(
     /**
      * the resulting state after an action has processed the input state in the process method of a processor

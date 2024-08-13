@@ -16,22 +16,34 @@
 
 package de.db.moredux
 
-// TODO kdoc
+/**
+ * An Effect is potentially returned by a Reducer as part of a ReducerResult. When an Effect is executed, it processes
+ * the current state, but does not return anything. It may dispatch actions via the passed dispatcher though.
+ */
 class Effect<STATE : State>(
     val code: (STATE, Dispatcher) -> Unit
 ) {
+    /**
+     * If false, this Effect has not been consumed/processed yet.
+     * If true, this Effect has been consumed/processed and will not be processed again.
+     */
     var isConsumed = false
         private set
 
+    /**
+     * @param state a copy of the state, that this Effect works on
+     * @param dispatcher a dispatcher to dispatch further actions. The dispatcher is either the Store where the
+     * Reducer is registered in that returned this current Effect, or the Stores parent StoreContainer
+     */
     fun execute(state: STATE, dispatcher: Dispatcher) {
         if (!isConsumed) {
             code.invoke(state, dispatcher)
             isConsumed = true
-            ReduxLogger.d(this::class, ReduxSettings.LogMode.MINIMAL, "Effect successfully consumed")
+            MoReduxLogger.d(this::class, MoReduxSettings.LogMode.MINIMAL, "Effect successfully consumed")
         } else {
-            ReduxLogger.w(
+            MoReduxLogger.w(
                 this::class,
-                ReduxSettings.LogMode.MINIMAL,
+                MoReduxSettings.LogMode.MINIMAL,
                 "Effect has already been consumed -> SKIP invocation"
             )
         }
