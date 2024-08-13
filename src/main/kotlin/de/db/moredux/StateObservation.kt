@@ -16,7 +16,9 @@
 
 package de.db.moredux
 
-// TODO kdoc stil fine ?
+/**
+ * The StateObservation class handles all StateObservers and notifications upon state changes
+ */
 // TODO refactor - move all none basic add / remove into Extensions (extending Store)
 class StateObservation<STATE : State>(
     /**

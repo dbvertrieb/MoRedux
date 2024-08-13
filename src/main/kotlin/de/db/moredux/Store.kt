@@ -20,6 +20,10 @@ package de.db.moredux
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 
+/**
+ * A Store manages the state (of type [STATE]) and all action dispatching throughout the reducers that are registered
+ * at this store.
+ */
 class Store<STATE : State> private constructor(
     initialState: STATE,
     private val reducers: MutableMap<KClass<*>, Reducer<STATE, Action>>

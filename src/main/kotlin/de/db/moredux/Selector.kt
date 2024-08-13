@@ -16,12 +16,15 @@
 
 package de.db.moredux
 
-// TODO Move the MutableLiveData dependent Selector to another OS project, that provides Android Livecycle Utilities
-// TODO Same with Compose State support
-
-// TODO kdoc still fine?
 /**
- * As soon as the Selector ist registered, onStateChanged() will be called with the state that is active at that moment
+ * A Selector is a special StateObserver, that is also an observable (see [observeSelector] and
+ * [removeAllSelectorObservers]). Using the [map] method, the Selector provides a fraction of data of the state,
+ * whenever the state changes. Which part of the state and whether that part of the state is further modified is up to
+ * the developer/use case.
+ *
+ * Example:
+ * A State holds a list of Todos. One Selector provides a list Todos that have not been finished. Another Selector
+ * provides the count of Todos that have been finished according to the current state.
  */
 abstract class Selector<STATE : State, VALUE> : StateObserver<STATE> {
 

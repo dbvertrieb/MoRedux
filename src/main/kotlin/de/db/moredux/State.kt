@@ -16,7 +16,12 @@
 
 package de.db.moredux
 
-// TODO kdoc
+/**
+ * All MoRedux stores need a state, that implements this State interface. This gives the MoRedux states a namespace
+ * and ensures, that a State can be copied/cloned at anytime.
+ *
+ * Make sure the State implementation contains only immutable members!
+ */
 interface State {
     /**
      * This clone method has to be implemented by the state, because there is no way to enforce the usage of a data
