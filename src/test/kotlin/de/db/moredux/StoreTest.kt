@@ -22,6 +22,27 @@ import org.junit.jupiter.api.Test
 class StoreTest {
 
     @Test
+    fun `test teardown`() {
+        // Given
+        val store = Store.Builder<StoreState>()
+            .withInitialState(StoreState())
+            .registerReducer<TestAction1> { state, _ -> state }
+            .registerReducer<TestAction2> { state, _ -> state }
+            .build()
+        val callbackState = mutableListOf<StoreState>()
+        store.observation.addStateObserver { state -> callbackState.add(state) }
+
+        // When
+        store.teardown()
+        val wasDispatched = store.dispatch(TestAction1)
+
+        // Then
+        assertThat(wasDispatched).isFalse()
+        assertThat(store.wants(TestAction1)).isFalse()
+        assertThat(store.wants(TestAction2)).isFalse()
+    }
+
+    @Test
     fun `test wants`() {
         // Given
         val store = Store.Builder<StoreState>()
