@@ -57,8 +57,8 @@ object MoReduxLogger {
      * Log level guard. Allows all, only a fraction or no logs at all.
      */
     private fun isAllowed(logMode: MoReduxSettings.LogMode): Boolean =
-        logMode == MoReduxSettings.LogMode.FULL ||
-                logMode == MoReduxSettings.LogMode.MINIMAL && MoReduxSettings.logMode == MoReduxSettings.LogMode.MINIMAL
+        MoReduxSettings.logMode == MoReduxSettings.LogMode.FULL ||
+                MoReduxSettings.logMode == MoReduxSettings.LogMode.MINIMAL && logMode == MoReduxSettings.LogMode.MINIMAL
 
     private fun getLogger(clazz: KClass<*>) = Logger.getLogger(getLogTag(clazz))
 
