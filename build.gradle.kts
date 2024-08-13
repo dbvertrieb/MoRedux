@@ -3,12 +3,18 @@ import java.net.URI
 plugins {
     kotlin("jvm") version "2.0.0"
     `maven-publish`
-// TODO reenable signing
+    // TODO reenable signing
 //    signing
+    id("pl.allegro.tech.build.axion-release") version "1.18.3"
+}
+
+// Axion plugin settings
+scmVersion {
+    versionCreator("versionWithBranch")
 }
 
 group = "de.db.moredux"
-version = "0.0.3"
+version = scmVersion.version
 
 repositories {
     mavenCentral()

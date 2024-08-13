@@ -18,6 +18,8 @@ package de.db.moredux
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 class StoreTest {
 
@@ -154,11 +156,68 @@ class StoreTest {
         assertThat(callbackState[0]).isEqualTo(StoreState(bla = "Reducer 1"))
     }
 
-    data class StoreState(val bla: String? = null) : State {
+    @Test
+    fun `test isPartOfStoreContainer without adding an injected dispatcher`() {
+        // Given
+        val store = Store.Builder<StoreState>()
+            .withInitialState(StoreState())
+            .registerReducer<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+            .build()
+
+        // When
+        val actual = store.isPartOfStoreContainer()
+
+        // Then
+        assertThat(actual).isFalse()
+    }
+
+    @Test
+    fun `test isPartOfStoreContainer after injecting a dispatcher`() {
+        // Given
+        val store = Store.Builder<StoreState>()
+            .withInitialState(StoreState())
+            .registerReducer<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+            .build()
+        store.injectedDispatcher = mock()
+
+
+        // When
+        val actual = store.isPartOfStoreContainer()
+
+        // Then
+        assertThat(actual).isTrue()
+    }
+
+    @Test
+    fun `storecontainer as dispatcher injected is used when follow up actions are processed`() {
+        // Given
+        val store = Store.Builder<StoreState>()
+            .withInitialState(StoreState())
+            .registerReducer<TestAction1>(
+                object : Reducer<StoreState, TestAction1>() {
+                    override fun reduce(state: StoreState, action: TestAction1): ReducerResult<StoreState> {
+                        return ReducerResult(state, TestAction2)
+                    }
+                })
+            .registerReducer<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
+            .build()
+        val injectedDispatcher: Dispatcher = mock()
+        store.injectedDispatcher = injectedDispatcher
+
+
+        // When
+        val wasDispatched = store.dispatch(TestAction1)
+
+        // Then
+        verify(injectedDispatcher).dispatch(TestAction2)
+        assertThat(wasDispatched).isTrue()
+    }
+
+    private data class StoreState(val bla: String? = null) : State {
         override fun clone(): State = this.copy()
     }
 
-    data object TestAction1 : Action
-    data object TestAction2 : Action
-    data object TestAction3 : Action
+    private data object TestAction1 : Action
+    private data object TestAction2 : Action
+    private data object TestAction3 : Action
 }

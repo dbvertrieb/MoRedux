@@ -16,8 +16,6 @@
 
 package de.db.moredux
 
-
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 
 /**
@@ -29,13 +27,25 @@ class Store<STATE : State> private constructor(
     private val reducers: MutableMap<KClass<*>, Reducer<STATE, Action>>
 ) : Dispatcher {
     private var _state: STATE = initialState
-    private val dispatchCounter = AtomicInteger()
 
     @Suppress("UNCHECKED_CAST")
     val state: STATE
         get() = _state.clone() as STATE
 
     internal val observationManager = ObservationManager(state)
+
+    internal var injectedDispatcher: Dispatcher? = null
+
+    /**
+     * Provide a incremental number for logging. In case this Store has been added to a StoreContainer,
+     * this dispatchCounter holds an injected DispatchCounter instance of the StoreContainer
+     */
+    internal var dispatchCounter: DispatchCounter = DispatchCounter()
+
+    /**
+     * @return if true, this store has been added to a StoreContainer
+     */
+    fun isPartOfStoreContainer(): Boolean = injectedDispatcher != null
 
     /**
      * Teardown this store:
@@ -66,7 +76,7 @@ class Store<STATE : State> private constructor(
         MoReduxLogger.d(
             this::class,
             MoReduxSettings.LogMode.MINIMAL,
-            "%d - Dispatch action: %s".format(currentDispatchCount, action)
+            "%s Dispatch action: %s".format(currentDispatchCount.createPrefix(), action)
         )
         return reducers.get(action::class)
             ?.takeIf { reducer -> reducer.wants(action) }
@@ -74,19 +84,24 @@ class Store<STATE : State> private constructor(
                 MoReduxLogger.d(
                     this::class,
                     MoReduxSettings.LogMode.FULL,
-                    "%d - Found reducer %s for action %s. Start reduction ...".format(
-                        currentDispatchCount,
+                    "%s Found reducer %s for action %s. Start reduction ...".format(
+                        currentDispatchCount.createPrefix(),
                         it::class.simpleName,
-                        action
+                        action::class.simpleName
                     )
                 )
             }
+            // reduction
             ?.reduceInternal(state, action)
+            // store new state
             ?.let { result ->
                 MoReduxLogger.d(
                     this::class,
                     MoReduxSettings.LogMode.FULL,
-                    "%d - Finished reduction of action %s".format(currentDispatchCount, action)
+                    "%s Finished reduction of action %s".format(
+                        currentDispatchCount.createPrefix(),
+                        action::class.simpleName
+                    )
                 )
                 setNewState(currentDispatchCount, result)
                 true
@@ -102,7 +117,7 @@ class Store<STATE : State> private constructor(
         MoReduxLogger.d(
             this::class,
             MoReduxSettings.LogMode.FULL,
-            "%d - republish current state".format(currentDispatchCount)
+            "%s republish current state".format(currentDispatchCount.createPrefix())
         )
         observationManager.onStateChanged(currentDispatchCount, state)
     }
@@ -118,7 +133,7 @@ class Store<STATE : State> private constructor(
         MoReduxLogger.d(
             this::class,
             MoReduxSettings.LogMode.FULL,
-            "%d - rehydrate state".format(currentDispatchCount)
+            "%s rehydrate state".format(currentDispatchCount.createPrefix())
         )
         setNewState(currentDispatchCount, ReducerResult(state))
     }
@@ -131,7 +146,7 @@ class Store<STATE : State> private constructor(
             MoReduxLogger.d(
                 this::class,
                 MoReduxSettings.LogMode.FULL,
-                "%d - Store new state".format(currentDispatchCount)
+                "%s Store new state".format(currentDispatchCount.createPrefix())
             )
             _state = reducerResult.state
             observationManager.onStateChanged(currentDispatchCount, state)
@@ -139,7 +154,7 @@ class Store<STATE : State> private constructor(
             MoReduxLogger.d(
                 this::class,
                 MoReduxSettings.LogMode.FULL,
-                "%d - State has not changed -> Skip notifications".format(currentDispatchCount)
+                "%s State has not changed -> Skip notifications".format(currentDispatchCount.createPrefix())
             )
         }
 
@@ -147,31 +162,66 @@ class Store<STATE : State> private constructor(
             MoReduxLogger.d(
                 this::class,
                 MoReduxSettings.LogMode.FULL,
-                "%d - Follow up action %s detected -> pass to dispatch".format(currentDispatchCount, action)
+                "%s Follow up action %s detected -> pass to dispatch".format(
+                    currentDispatchCount.createPrefix(),
+                    action::class.simpleName
+                )
             )
-            dispatch(action)
+            resolveDispatcher(currentDispatchCount).dispatch(action)
         }
         reducerResult.effect?.let { effect ->
             MoReduxLogger.d(
                 this::class,
                 MoReduxSettings.LogMode.FULL,
-                "%d - Effect %s detected -> start execution".format(currentDispatchCount, effect)
+                "%s Effect %s detected -> start execution".format(currentDispatchCount.createPrefix(), effect)
             )
             effect.execute(reducerResult.state, this)
         }
     }
 
+    private fun resolveDispatcher(currentDispatchCount: Int): Dispatcher =
+        injectedDispatcher
+            ?.let {
+                MoReduxLogger.d(
+                    this::class,
+                    MoReduxSettings.LogMode.FULL,
+                    "%s Use injected dispatcher %s".format(
+                        currentDispatchCount.createPrefix(),
+                        it::class.simpleName
+                    )
+                )
+                it
+            }
+            ?: run {
+                MoReduxLogger.d(
+                    this::class,
+                    MoReduxSettings.LogMode.FULL,
+                    "%s Use current store %s as dispatcher".format(
+                        currentDispatchCount.createPrefix(),
+                        this::class.simpleName
+                    )
+                )
+                this
+            }
+
+    private fun Int.createPrefix(): String = "%d - Store for %s -".format(this, state::class.simpleName)
+
     @Suppress("UNCHECKED_CAST")
     class Builder<STATE : State> {
         private var initialState: STATE? = null
-        val reducers = mutableMapOf<KClass<*>, Reducer<STATE, Action>>()
+
+        /**
+         * Must not be private, because it is used in the inlined registerReducer method below
+         */
+        val reducers: Map<KClass<*>, Reducer<STATE, Action>> = mutableMapOf()
 
         fun withInitialState(initialState: STATE): Builder<STATE> = also {
             this.initialState = initialState
         }
 
         /**
-         * Register a reducer that processes [ACTION]
+         * Register a reducer that processes [ACTION] and returns a [STATE] (not a ReducerResult) without any
+         * follow up actions or effects
          */
         inline fun <reified ACTION : Action> registerReducer(
             noinline codeToState: (STATE, ACTION) -> STATE
@@ -190,7 +240,7 @@ class Store<STATE : State> private constructor(
             if (reducers.containsValue<KClass<*>, Reducer<STATE, out Action>>(reducer)) {
                 MoReduxLogger.w(
                     this::class,
-                    MoReduxSettings.LogMode.FULL,
+                    MoReduxSettings.LogMode.MINIMAL,
                     "Reducer has already been registered -> Skipping registration"
                 )
                 return this
@@ -200,8 +250,8 @@ class Store<STATE : State> private constructor(
             if (reducers.containsKey(ACTION::class)) {
                 MoReduxLogger.w(
                     this::class,
-                    MoReduxSettings.LogMode.FULL,
-                    "Reducer wants action (%s) that is already wanted by an already registered reducer (%s) as well " +
+                    MoReduxSettings.LogMode.MINIMAL,
+                    "Reducer wants action (%s) that is also wanted by an already registered reducer (%s) as well " +
                             "-> Skipping registration".format(
                                 ACTION::class.simpleName,
                                 reducers[ACTION::class]
@@ -212,13 +262,14 @@ class Store<STATE : State> private constructor(
 
             reducer.setActionKClass(ACTION::class)
 
-            reducers[ACTION::class] = reducer as Reducer<STATE, Action>
+            (reducers as MutableMap<KClass<*>, Reducer<STATE, Action>>)[ACTION::class] =
+                reducer as Reducer<STATE, Action>
             return this
         }
 
         fun build(): Store<STATE> = Store(
             checkNotNull(initialState) { "InitialState is not set" },
-            reducers
+            reducers as MutableMap<KClass<*>, Reducer<STATE, Action>>
         )
     }
 }
