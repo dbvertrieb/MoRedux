@@ -23,6 +23,19 @@ import org.mockito.Mockito.verify
 
 class StoreContainerTest {
 
+
+    @Test
+    fun `test wants`() {
+        // Given
+        val storeContainer = StoreContainer.Builder()
+            .addStore(createStore1())
+            .build()
+
+        // When & Then
+        assertThat(storeContainer.wants(TestAction1)).isTrue()
+        assertThat(storeContainer.wants(TestAction2)).isFalse()
+    }
+
     @Test
     fun `no stores registered in storecontainer - no dispatch possible`() {
         // Given
