@@ -6,7 +6,9 @@ Redux framework in Kotlin
 
 # Download
 
-gradle:
+Replace **$VERSION_NUMBER$** with the released version of your choice. The recommended version is the latest.
+
+## gradle
 ```
 # on build.gradle.kts on project level
 repositories {
@@ -15,16 +17,16 @@ repositories {
 
 # wherever you declare your dependencies (project / module level)
 dependencies {
-    implementation("de.db.moredux:MoRedux:0.0.2")
+    implementation("de.db.moredux:MoRedux:$VERSION_NUMBER$")
 }
 ```
 
-Maven:
+## Maven
 ```
 <dependency>
     <groupId>de.db.moredux</groupId>
     <artifactId>MoRedux</artifactId>
-    <version>0.0.2</version>
+    <version>$VERSION_NUMBER$</version>
 </dependency>
 ```
 
