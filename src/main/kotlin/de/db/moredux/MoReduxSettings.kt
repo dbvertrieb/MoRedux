@@ -42,12 +42,12 @@ object MoReduxSettings {
      * 1. String parameter: the log tag of the current log message
      * 2. String parameter: the log message itself
      */
-    var logDebug: ((String?, String) -> Unit)? = null
+    var logDebug: ((String, String) -> Unit)? = null
 
     /**
      * Set a callback method that is used for logging of warning messages.
      *
      * For further explanations see [logDebug]
      */
-    var logWarn: ((String?, String) -> Unit)? = null
+    var logWarn: ((String, String) -> Unit)? = null
 }
