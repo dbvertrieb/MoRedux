@@ -27,7 +27,9 @@ jobs:
       - name: Create new PATCH version tag
         id: release
         run: |
-          ./gradlew release -Prelease.localOnly \
+          ./gradlew release \
+            -Prelease.useHighestVersion \
+            -Prelease.localOnly \
             -Prelease.customUsername=${{ github.actor }} \
             -Prelease.customPassword=${{ github.token }}
 

@@ -41,7 +41,7 @@ jobs:
 
   Create-new-MINOR-version:
     needs: publish
-    name: Create new MINOR version tag
+    name: Create new MINOR version marker
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -61,11 +61,15 @@ jobs:
       - name: Mark next version with MINOR increment
         id: release
         run: |
-          ./gradlew markNextVersion -Prelease.versionIncrementer=incrementMinor -Prelease.localOnly \
+          ./gradlew markNextVersion \
+            -Prelease.versionIncrementer=incrementMinor \
+            -Prelease.useHighestVersion \
+            -Prelease.localOnly \
             -Prelease.customUsername=${{ github.actor }} \
             -Prelease.customPassword=${{ github.token }}
 
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
+          force: true
           tags: true
