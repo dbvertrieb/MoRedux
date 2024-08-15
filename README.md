@@ -29,6 +29,15 @@ dependencies {
     <version>$VERSION_NUMBER$</version>
 </dependency>
 ```
+# Basic Usage
+
+## Components
+
+* State
+* Action
+* Effect
+* Store
+* StoreContainer
 
 # License
 
