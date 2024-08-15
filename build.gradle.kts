@@ -13,7 +13,7 @@ scmVersion {
     versionCreator("versionWithBranch")
 }
 
-group = "io.github.dbvertrieb.moredux"
+group = "io.github.dbvertrieb"
 version = scmVersion.version
 
 repositories {
