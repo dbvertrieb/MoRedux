@@ -62,7 +62,7 @@ jobs:
         id: release
         run: |
           ./gradlew markNextVersion \
-            -Prelease.versionIncrementer=incrementMinor \
+            -Prelease.incrementer=incrementMinor \
             -Prelease.useHighestVersion \
             -Prelease.localOnly \
             -Prelease.customUsername=${{ github.actor }} \
