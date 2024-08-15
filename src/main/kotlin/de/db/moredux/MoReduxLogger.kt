@@ -38,7 +38,7 @@ object MoReduxLogger {
         if (isAllowed(logMode)) {
             MoReduxSettings.logDebug
                 ?.let { customLogger -> customLogger(getLogTag(clazz), message) }
-                ?: getLogger(clazz).log(Level.FINE, message)
+                ?: getLogger(clazz).log(Level.INFO, message)
         }
     }
 
