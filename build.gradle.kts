@@ -43,7 +43,7 @@ java {
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            artifactId = "MoRedux"
+            artifactId = "moredux"
             from(components["java"])
             versionMapping {
                 usage("java-api") {

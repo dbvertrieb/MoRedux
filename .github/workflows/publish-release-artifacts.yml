@@ -40,10 +40,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   Create-new-MINOR-version:
+    needs: publish
+    name: Create new MINOR version tag
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: read
     steps:
       - name: checkout
         uses: actions/checkout@v4
