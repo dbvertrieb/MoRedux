@@ -57,8 +57,19 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
-      - name: Create new MINOR version tag
-        run: ./gradlew release -Prelease.versionIncrementer=incrementMinor
+      - name: Create new PATCH version tag
+        id: release
+        run: |
+          ./gradlew release -Prelease.versionIncrementer=incrementMinor -Prelease.localOnly \
+            -Prelease.customUsername=${{ github.actor }} \
+            -Prelease.customPassword=${{ github.token }}
 
-      - name: Push new version tag
-        run: git push --tags
+      - name: Post release version
+        id: post-prelease
+        run: |
+          ./gradlew currentVersion
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          tags: true
