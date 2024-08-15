@@ -1,9 +1,8 @@
 name: Create new PATCH version upon push to and merge into main branch
 on:
   push:
-# TODO den main filter wieder mit rein nehmen
-#    branches:
-#      - 'main'
+    branches:
+      - 'main'
 jobs:
   Create-new-PATCH-version:
     runs-on: ubuntu-latest
@@ -25,14 +24,6 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
-#      - name: Create new PATCH version tag
-#        run: ./gradlew release
-
-      - name: Pre release version
-        id: pre-prelease
-        run: |
-          ./gradlew currentVersion
-
       - name: Create new PATCH version tag
         id: release
         run: |
@@ -48,17 +39,4 @@ jobs:
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-#          github_token: ${{ secrets.GITHUB_TOKEN }}
-#          branch: ${{ github.ref }}
           tags: true
-#
-#  - name: Commit changes
-#      uses: EndBug/add-and-commit@v9
-#      with:
-#        author_name: Your Name
-#        author_email: mail@example.com
-#        message: 'Your commit message'
-#        add: '*.js'
-#
-#      - name: Push new version tag
-#        run: git push --tags
