@@ -62,5 +62,5 @@ object MoReduxLogger {
 
     private fun getLogger(clazz: KClass<*>) = Logger.getLogger(getLogTag(clazz))
 
-    private fun getLogTag(clazz: KClass<*>): String = clazz.simpleName ?: NO_NAME_CLASS
+    private fun getLogTag(clazz: KClass<*>): String = "MoRedux." + (clazz.simpleName ?: NO_NAME_CLASS)
 }
