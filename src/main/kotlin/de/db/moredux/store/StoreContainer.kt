@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.store
+
+import de.db.moredux.Action
+import de.db.moredux.settings.MoReduxLogger
+import de.db.moredux.settings.MoReduxSettings
+import de.db.moredux.State
 
 /**
  * A StoreContainer is a container for multiple dispatchers (Store + StoreContainer).

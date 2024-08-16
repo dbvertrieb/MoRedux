@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.settings
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.AfterEach

@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.reducer
+
+import de.db.moredux.Action
+import de.db.moredux.Effect
+import de.db.moredux.State
 
 /**
  * The result of a Reducers reduce method

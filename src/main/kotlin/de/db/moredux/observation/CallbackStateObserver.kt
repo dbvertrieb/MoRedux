@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.observation
 
-import java.util.concurrent.atomic.AtomicInteger
+import de.db.moredux.State
 
-class DispatchCounter {
-    private val dispatchCounter = AtomicInteger()
-
-    fun incrementAndGet(): Int = dispatchCounter.incrementAndGet()
-
-    fun get(): Int = dispatchCounter.get()
+/**
+ * Class that transforms a simple callback function into a StateObserver
+ */
+class CallbackStateObserver<STATE : State>(private val callback: (STATE) -> Unit) : StateObserver<STATE> {
+    override fun onStateChanged(state: STATE) {
+        callback(state)
+    }
 }

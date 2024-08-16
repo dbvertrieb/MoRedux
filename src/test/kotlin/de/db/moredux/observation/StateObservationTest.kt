@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.observation
 
 import com.google.common.truth.Truth.assertThat
+import de.db.moredux.State
+import de.db.moredux.store.Store
 import org.junit.jupiter.api.Test
 
 class StateObservationTest {

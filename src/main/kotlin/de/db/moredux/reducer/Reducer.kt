@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.reducer
 
+import de.db.moredux.Action
+import de.db.moredux.State
 import kotlin.reflect.KClass
 
 /**

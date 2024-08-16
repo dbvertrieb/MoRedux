@@ -1,4 +1,4 @@
-package de.db.moredux
+package de.db.moredux.store
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test

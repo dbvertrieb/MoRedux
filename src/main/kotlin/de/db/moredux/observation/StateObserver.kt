@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.observation
+
+import de.db.moredux.State
 
 /**
  * A class that implements this StateObserver is able to receive state updates of a store. A StateObserver has to be

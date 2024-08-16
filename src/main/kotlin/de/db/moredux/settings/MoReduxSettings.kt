@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.settings
 
 /**
  * A class to setup some MoRedux behaviour

@@ -16,6 +16,10 @@
 
 package de.db.moredux
 
+import de.db.moredux.settings.MoReduxLogger
+import de.db.moredux.settings.MoReduxSettings
+import de.db.moredux.store.Dispatcher
+
 /**
  * An Effect is potentially returned by a Reducer as part of a ReducerResult. When an Effect is executed, it processes
  * the current state, but does not return anything. It may dispatch actions via the passed dispatcher though.

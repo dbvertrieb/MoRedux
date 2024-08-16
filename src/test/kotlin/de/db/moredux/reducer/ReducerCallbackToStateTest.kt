@@ -14,29 +14,37 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.reducer
 
 import com.google.common.truth.Truth.assertThat
+import de.db.moredux.Action
+import de.db.moredux.State
 import org.junit.jupiter.api.Test
 
-class CallbackStateObserverTest {
+
+class ReducerCallbackToStateTest {
+
     @Test
-    fun `test onStateChanged`() {
+    fun `test reduce`() {
         // Given
-        var actualStatePropertyValue = "Some random inital value"
-        val sut = CallbackStateObserver<CallbackStateObserverState> { state ->
-            actualStatePropertyValue = state.dummyStateProperty
-        }
+        val sut =
+            ReducerCallbackToState<ReducerCallbackToStateState, ReducerCallbackToStateAction.Action1> { state, _ ->
+                state.copy(bla = state.bla.lowercase())
+            }
 
         // When
-        sut.onStateChanged(CallbackStateObserverState(dummyStateProperty = "some string"))
+        val actual = sut.reduce(ReducerCallbackToStateState("ALTER WERT"), ReducerCallbackToStateAction.Action1)
 
         // Then
-        assertThat(actualStatePropertyValue).isEqualTo("some string")
+        val expected = ReducerResult(ReducerCallbackToStateState("alter wert"))
+        assertThat(actual).isEqualTo(expected)
     }
 
-    // Basic state implementation for testing
-    data class CallbackStateObserverState(val dummyStateProperty: String) : State {
+    sealed class ReducerCallbackToStateAction : Action {
+        data object Action1 : ReducerCallbackToStateAction()
+    }
+
+    data class ReducerCallbackToStateState(val bla: String) : State {
         override fun clone(): State = this.copy()
     }
 }

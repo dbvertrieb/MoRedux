@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.store
 
-/**
- * All classes that are able to dispatch MoRedux actions implement this interface.
- */
-interface Dispatcher {
+import java.util.concurrent.atomic.AtomicInteger
 
-    /**
-     * @param action action to dispatch
-     * @return if true, the action has been reduced successfully by a registered Reducer. If false, the action has not
-     * been reduced. Could be because a Reducer is missing for [action] or the reduction failed etc.
-     */
-    fun dispatch(action: Action): Boolean
+class DispatchCounter {
+    private val dispatchCounter = AtomicInteger()
+
+    fun incrementAndGet(): Int = dispatchCounter.incrementAndGet()
+
+    fun get(): Int = dispatchCounter.get()
 }

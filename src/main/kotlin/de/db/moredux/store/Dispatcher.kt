@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.store
+
+import de.db.moredux.Action
 
 /**
- * Class that transforms a simple callback function into a StateObserver
+ * All classes that are able to dispatch MoRedux actions implement this interface.
  */
-class CallbackStateObserver<STATE : State>(private val callback: (STATE) -> Unit) : StateObserver<STATE> {
-    override fun onStateChanged(state: STATE) {
-        callback(state)
-    }
+interface Dispatcher {
+
+    /**
+     * @param action action to dispatch
+     * @return if true, the action has been reduced successfully by a registered Reducer. If false, the action has not
+     * been reduced. Could be because a Reducer is missing for [action] or the reduction failed etc.
+     */
+    fun dispatch(action: Action): Boolean
 }

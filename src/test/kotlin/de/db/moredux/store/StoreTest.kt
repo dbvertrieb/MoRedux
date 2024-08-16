@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.store
 
 import com.google.common.truth.Truth.assertThat
+import de.db.moredux.Action
+import de.db.moredux.State
+import de.db.moredux.observation.addStateObserver
+import de.db.moredux.reducer.Reducer
+import de.db.moredux.reducer.ReducerResult
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify

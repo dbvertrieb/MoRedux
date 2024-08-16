@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.reducer
 
 import com.google.common.truth.Truth.assertThat
+import de.db.moredux.Action
+import de.db.moredux.State
 import org.junit.jupiter.api.Test
 
 class ReducerTest {

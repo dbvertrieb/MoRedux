@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.observation
+
+import de.db.moredux.State
+import de.db.moredux.store.Store
 
 /**
  * Register a [stateObserver] that will be notified everytime the state changes. A StateObserver may only
