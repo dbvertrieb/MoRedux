@@ -56,7 +56,7 @@ class MoReduxLoggerTest {
 
         // Then
         if (wasLogged) {
-            assertThat(actualTag).isEqualTo("MoReduxLogger")
+            assertThat(actualTag).isEqualTo("MoRedux.MoReduxLogger")
             assertThat(actualMessage).isEqualTo("Message text")
         } else {
             assertThat(actualTag).isNull()
@@ -85,7 +85,7 @@ class MoReduxLoggerTest {
 
         // Then
         if (wasLogged) {
-            assertThat(actualTag).isEqualTo("MoReduxLogger")
+            assertThat(actualTag).isEqualTo("MoRedux.MoReduxLogger")
             assertThat(actualMessage).isEqualTo("Message text")
         } else {
             assertThat(actualTag).isNull()
