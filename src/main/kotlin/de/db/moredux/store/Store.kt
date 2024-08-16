@@ -223,6 +223,11 @@ class Store<STATE : State> private constructor(
          */
         val reducers: Map<KClass<*>, Reducer<STATE, Action>> = mutableMapOf()
 
+        /**
+         * @param initialState the initialState is mandatory. Without an initial state, the Builder.build() method will
+         * throw an Exception
+         * @return this Builder for chaining
+         */
         fun withInitialState(initialState: STATE): Builder<STATE> = also {
             this.initialState = initialState
         }
@@ -275,6 +280,10 @@ class Store<STATE : State> private constructor(
             return this
         }
 
+        /**
+         * @return the built Store
+         * @throws IllegalStateException in case the initialState is not set
+         */
         fun build(): Store<STATE> = Store(
             checkNotNull(initialState) { "InitialState is not set" },
             reducers as MutableMap<KClass<*>, Reducer<STATE, Action>>
