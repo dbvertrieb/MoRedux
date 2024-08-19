@@ -9,7 +9,7 @@ MoRedux is a predictable state management method. It centralizes the state of an
 
 # Download
 
-Replace **$VERSION$** with the released version of your choice. The recommended version is the latest.
+Replace **\$VERSION\$** with the released version of your choice. The recommended version is the latest.
 
 ## gradle
 
@@ -36,7 +36,7 @@ dependencies {
 ```
 # When to use MoRedux
 
-The Redux method ensures that state changes are predictable and easy to track, which is crucial in larger apllications. If your appliciation has a lot of shared state that needs to be accessible across multiple components or the state contains a lot of data,especially when teh state is changed in bigger user interfaces, the Redux method helps managing user interactions and state changes.
+The Redux method ensures that state changes are predictable and easy to track, which is crucial in larger applications. If your application has a lot of shared state that needs to be accessible across multiple components or the state contains a lot of data,especially when the state is changed in bigger user interfaces, the Redux method in general helps to manage user interactions and state changes.
 
 # Basic Usage
 
@@ -72,7 +72,7 @@ actions. The dispatch process is identical to a regular action dispatch
 
 ## Followup actions
 
-Followup actions are possible additional results of a reducer. A follow up action is not different from regular actions.
+Followup actions are possible additional results of a reducer. A follow-up action is not different from regular actions.
 They are executed / redispatched right after the reducer finishes.
 
 ## StateObserver
@@ -102,7 +102,7 @@ storecontainer to the store that contains the reducer that is responsible for th
 
 ## Logging
 
-The "logging component" is nothing Redux specific, but a simple tool to help you integrate MoRedux into your code. You can redirect all logging of MoRedux to the log mechanism of your choice (see ModReduxSettings). In addition you can specify the amount of logs that are logged out. The possible settings are FULL, MINIMAL and DISABLED.
+The "logging component" is nothing Redux specific, but a simple tool to help you integrate MoRedux into your code. You can redirect all logging of MoRedux to the log mechanism of your choice (see ModReduxSettings). In addition, you can specify the amount of logs that are logged out. The possible settings are FULL, MINIMAL and DISABLED.
 
 # Examples
 
@@ -159,7 +159,7 @@ fun main() {
         }
         .build()
 
-    // setup a selector only with todos that have not been done yet
+    // set up a selector only with todos that have not been done yet
     val unfinishedTodos = store.addSelectorToStateFlow(emptyList()) { state ->
         state.todos.filterIndexed { index, _ -> !state.done[index] }
     }
