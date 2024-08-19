@@ -21,7 +21,7 @@ repositories {
 
 # wherever you declare your dependencies (project / module level)
 dependencies {
-    implementation("de.db.moredux:MoRedux:$VERSION$")
+    implementation("io.github.dbvertrieb:moredux:$VERSION$")
 }
 ```
 
@@ -29,8 +29,8 @@ dependencies {
 
 ```
 <dependency>
-    <groupId>de.db.moredux</groupId>
-    <artifactId>MoRedux</artifactId>
+    <groupId>io.github.dbvertrieb</groupId>
+    <artifactId>moredux</artifactId>
     <version>$VERSION$</version>
 </dependency>
 ```
