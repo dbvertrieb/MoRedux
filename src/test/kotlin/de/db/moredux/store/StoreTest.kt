@@ -33,8 +33,8 @@ class StoreTest {
         // Given
         val store = Store.Builder<StoreState>()
             .withInitialState(StoreState())
-            .registerReducer<TestAction1> { state, _ -> state }
-            .registerReducer<TestAction2> { state, _ -> state }
+            .registerReducerToState<TestAction1> { state, _ -> state }
+            .registerReducerToState<TestAction2> { state, _ -> state }
             .build()
         val callbackState = mutableListOf<StoreState>()
         store.addStateObserver { state -> callbackState.add(state) }
@@ -54,8 +54,8 @@ class StoreTest {
         // Given
         val store = Store.Builder<StoreState>()
             .withInitialState(StoreState())
-            .registerReducer<TestAction1> { state, _ -> state }
-            .registerReducer<TestAction2> { state, _ -> state }
+            .registerReducerToState<TestAction1> { state, _ -> state }
+            .registerReducerToState<TestAction2> { state, _ -> state }
             .build()
 
         // When & Then
@@ -71,11 +71,11 @@ class StoreTest {
         var testReducer2Executed = false
         val store = Store.Builder<StoreState>()
             .withInitialState(StoreState())
-            .registerReducer<TestAction1> { state, _ ->
+            .registerReducerToState<TestAction1> { state, _ ->
                 testReducer1Executed = true
                 state.copy(bla = "Reducer 1")
             }
-            .registerReducer<TestAction2> { state, _ ->
+            .registerReducerToState<TestAction2> { state, _ ->
                 testReducer2Executed = true
                 state.copy(bla = "Reducer 2")
             }
@@ -100,8 +100,8 @@ class StoreTest {
         // Given
         val store = Store.Builder<StoreState>()
             .withInitialState(StoreState())
-            .registerReducer<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
-            .registerReducer<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
+            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+            .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
             .build()
 
         val callbackState = mutableListOf<StoreState>()
@@ -123,8 +123,8 @@ class StoreTest {
         // Given
         val store = Store.Builder<StoreState>()
             .withInitialState(StoreState())
-            .registerReducer<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
-            .registerReducer<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
+            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+            .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
             .build()
 
         val callbackState = mutableListOf<StoreState>()
@@ -145,8 +145,8 @@ class StoreTest {
         // Given
         val store = Store.Builder<StoreState>()
             .withInitialState(StoreState())
-            .registerReducer<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
-            .registerReducer<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
+            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+            .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
             .build()
 
         val callbackState = mutableListOf<StoreState>()
@@ -166,7 +166,7 @@ class StoreTest {
         // Given
         val store = Store.Builder<StoreState>()
             .withInitialState(StoreState())
-            .registerReducer<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
             .build()
 
         // When
@@ -181,7 +181,7 @@ class StoreTest {
         // Given
         val store = Store.Builder<StoreState>()
             .withInitialState(StoreState())
-            .registerReducer<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
             .build()
         store.injectedDispatcher = mock()
 
@@ -204,7 +204,7 @@ class StoreTest {
                         return ReducerResult(state, TestAction2)
                     }
                 })
-            .registerReducer<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
+            .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
             .build()
         val injectedDispatcher: Dispatcher = mock()
         store.injectedDispatcher = injectedDispatcher

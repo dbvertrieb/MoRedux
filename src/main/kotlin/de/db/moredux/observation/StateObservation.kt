@@ -17,7 +17,10 @@
 package de.db.moredux.observation
 
 import de.db.moredux.State
+import de.db.moredux.settings.MoReduxLogger
+import de.db.moredux.settings.MoReduxSettings
 import de.db.moredux.store.Store
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * Register a [stateObserver] that will be notified everytime the state changes. A StateObserver may only
@@ -64,28 +67,65 @@ fun <STATE : State, VALUE> Store<STATE>.addSelector(
 }
 
 /**
- * Register a [select] as a Selector. The [select] will be treated like any other Selector.
+ * Register a [map] as a Selector. The [map] will be treated like any other Selector.
  *
- * @param processCurrentStateImmediately if true, the current state will be pushed into the passed [select]
- * @param select the [select] function maps the state [STATE] to [VALUE]. The [VALUE] is published to the Selector
- * @return the Selector instance that was constructed out of [select]
+ * @param processCurrentStateImmediately if true, the current state will be pushed into the passed [map]
+ * @param observer in order to be able to process the current state immediately, an observer function has
+ * to be passed as argument here. The Selector is created inside this function, which makes it impossible to set any
+ * observer function before processing the current state. If [processCurrentStateImmediately] is true anf [observer]
+ * is null, then you will simply loose the current state. Every follow up state will be observed correctly though.
+ * @param map the [map] function maps the state [STATE] to [VALUE]. The [VALUE] is published to the Selector
+ * @return the Selector instance that was constructed out of [map]
  * @see addSelector
  */
-// TODO test
 fun <STATE : State, VALUE> Store<STATE>.addSelector(
-    processCurrentStateImmediately: Boolean = false,
-    select: (STATE) -> VALUE
+    processCurrentStateImmediately: Boolean,
+    observer: ((VALUE) -> Unit)? = null,
+    map: (STATE) -> VALUE
 ): Selector<STATE, VALUE> {
     val selector = object : Selector<STATE, VALUE>() {
-        override fun map(state: STATE): VALUE = select(state)
+        override fun map(state: STATE): VALUE = map(state)
     }
+
+    if (observer == null && processCurrentStateImmediately) {
+        MoReduxLogger.w(
+            ObservationManager::class,
+            MoReduxSettings.LogMode.MINIMAL,
+            "Adding selector with processCurrentStateImmediately set, but without an observer function -> " +
+                    "The current state will not be published anywhere by this Selector."
+        )
+    }
+
+    observer?.let { selector.observeSelector { value -> observer(value) } }
     return addSelector(processCurrentStateImmediately, selector)
 }
 
 /**
- * Remove the passed [stateObserver] from the observer list. May be a StateObserver instance including Selectors
+ * Register a [map] as a Selector that extends a Kotlin coroutines MutableStateFlow.
+ * The [map] will be treated like any other Selector.
+ *
+ * @param initialValue the initial value o the created StateFlow
+ * @param processCurrentStateImmediately if true, the current state will be pushed into the passed [map]
+ * @param map the [map] function maps the state [STATE] to [VALUE]. The [VALUE] is published to the created MutableStateFlow
+ * @return the SelectorToStateFlow instance that was constructed out of [map] - it's a MutableStateFlow under the hood
+ * @see addSelector
  */
-// TODO test
+fun <STATE : State, VALUE> Store<STATE>.addSelectorStateFlow(
+    initialValue: VALUE,
+    processCurrentStateImmediately: Boolean = false,
+    map: (STATE) -> VALUE
+): SelectorToStateFlow<STATE, VALUE> {
+    val mutableStateFlow = MutableStateFlow(initialValue)
+    val selector = object : SelectorToStateFlow<STATE, VALUE>(mutableStateFlow) {
+        override fun map(state: STATE): VALUE = map(state)
+    }
+    addSelector(processCurrentStateImmediately, selector)
+    return selector
+}
+
+/**
+ * Remove the passed [stateObserver] from the observer list. This may be any StateObserver instance including Selectors
+ */
 fun <STATE : State> Store<STATE>.removeObserver(stateObserver: StateObserver<STATE>) {
     this.observationManager.removeObserver(stateObserver)
 }

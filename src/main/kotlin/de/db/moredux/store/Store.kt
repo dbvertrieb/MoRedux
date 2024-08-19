@@ -24,6 +24,7 @@ import de.db.moredux.reducer.Reducer
 import de.db.moredux.reducer.ReducerCallbackToState
 import de.db.moredux.reducer.ReducerResult
 import de.db.moredux.State
+import de.db.moredux.reducer.ReducerCallback
 import kotlin.reflect.KClass
 
 /**
@@ -236,10 +237,20 @@ class Store<STATE : State> private constructor(
          * Register a reducer that processes [ACTION] and returns a [STATE] (not a ReducerResult) without any
          * follow up actions or effects
          */
-        inline fun <reified ACTION : Action> registerReducer(
+        inline fun <reified ACTION : Action> registerReducerToState(
             noinline codeToState: (STATE, ACTION) -> STATE
         ): Builder<STATE> = also {
             val reducer = ReducerCallbackToState(codeToState = codeToState)
+            registerReducer(reducer)
+        }
+
+        /**
+         * Register a reducer that processes [ACTION] and produces a ReducerResult
+         */
+        inline fun <reified ACTION : Action> registerReducer(
+            noinline code: (STATE, ACTION) -> ReducerResult<STATE>
+        ): Builder<STATE> = also {
+            val reducer = ReducerCallback(code = code)
             registerReducer(reducer)
         }
 
