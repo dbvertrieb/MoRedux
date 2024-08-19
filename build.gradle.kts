@@ -1,11 +1,11 @@
 import java.net.URI
 
 plugins {
-    kotlin("jvm") version "2.0.0"
+    kotlin("jvm") version libs.versions.kotlin
     `maven-publish`
     // TODO reenable signing
 //    signing
-    id("pl.allegro.tech.build.axion-release") version "1.18.3"
+    id("pl.allegro.tech.build.axion-release") version libs.versions.axion
 }
 
 // Axion plugin settings
@@ -19,14 +19,14 @@ version = scmVersion.version
 repositories {
     mavenCentral()
 }
-// TODO version catalog
-dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 
-    testImplementation(kotlin("test"))
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.0")
-    testImplementation("com.google.truth:truth:1.4.4")
-    testImplementation("org.mockito:mockito-inline:5.2.0")
+dependencies {
+    implementation(libs.kotlinx.coroutines)
+
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.junit.jupiter.params)
+    testImplementation(libs.google.truth)
+    testImplementation(libs.mockito.inline)
 }
 
 tasks.test {
