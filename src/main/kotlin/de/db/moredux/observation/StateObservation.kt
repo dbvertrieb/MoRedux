@@ -59,7 +59,7 @@ fun <STATE : State> Store<STATE>.addStateObserver(
  * @return the [selector] instance
  */
 fun <STATE : State, VALUE> Store<STATE>.addSelector(
-    processCurrentStateImmediately: Boolean,
+    processCurrentStateImmediately: Boolean = false,
     selector: Selector<STATE, VALUE>
 ): Selector<STATE, VALUE> {
     this.observationManager.addStateObserver(processCurrentStateImmediately, selector)
@@ -67,7 +67,8 @@ fun <STATE : State, VALUE> Store<STATE>.addSelector(
 }
 
 /**
- * Register a [map] as a Selector. The [map] will be treated like any other Selector.
+ * Register a [map] function as a Selector. The [map] will be wrapped in a Selector and is treated like any
+ * other StateObserver.
  *
  * @param processCurrentStateImmediately if true, the current state will be pushed into the passed [map]
  * @param observer in order to be able to process the current state immediately, an observer function has
@@ -76,10 +77,10 @@ fun <STATE : State, VALUE> Store<STATE>.addSelector(
  * is null, then you will simply loose the current state. Every follow up state will be observed correctly though.
  * @param map the [map] function maps the state [STATE] to [VALUE]. The [VALUE] is published to the Selector
  * @return the Selector instance that was constructed out of [map]
- * @see addSelector
+ * @see addSelectorFromCallback
  */
-fun <STATE : State, VALUE> Store<STATE>.addSelector(
-    processCurrentStateImmediately: Boolean,
+fun <STATE : State, VALUE> Store<STATE>.addSelectorFromCallback(
+    processCurrentStateImmediately: Boolean = false,
     observer: ((VALUE) -> Unit)? = null,
     map: (STATE) -> VALUE
 ): Selector<STATE, VALUE> {
@@ -101,14 +102,14 @@ fun <STATE : State, VALUE> Store<STATE>.addSelector(
 }
 
 /**
- * Register a [map] as a Selector that extends a Kotlin coroutines MutableStateFlow.
- * The [map] will be treated like any other Selector.
+ * Register a [map] as a Selector. This particular Selector extends a Kotlin coroutines MutableStateFlow and can be used as such.
+ * The created Selector will be treated like any other StateObserver.
  *
  * @param initialValue the initial value o the created StateFlow
  * @param processCurrentStateImmediately if true, the current state will be pushed into the passed [map]
  * @param map the [map] function maps the state [STATE] to [VALUE]. The [VALUE] is published to the created MutableStateFlow
  * @return the SelectorToStateFlow instance that was constructed out of [map] - it's a MutableStateFlow under the hood
- * @see addSelector
+ * @see addSelectorFromCallback
  */
 fun <STATE : State, VALUE> Store<STATE>.addSelectorStateFlow(
     initialValue: VALUE,

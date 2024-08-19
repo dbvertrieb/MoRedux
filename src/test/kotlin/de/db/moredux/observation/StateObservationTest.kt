@@ -194,7 +194,7 @@ class StateObservationTest {
     fun `test addSelector with callback function and processCurrentStateImmediately`() {
         // Given
         val callbackState = mutableListOf<String>()
-        val selector = store.addSelector(
+        val selector = store.addSelectorFromCallback(
             processCurrentStateImmediately = true,
             observer = { value -> callbackState.add(value) }
         ) { state ->
@@ -223,6 +223,34 @@ class StateObservationTest {
     }
 
     @Test
+    fun `test addSelector with callback function and without processCurrentStateImmediately`() {
+        // Given
+        val callbackState = mutableListOf<String>()
+        val selector = store.addSelectorFromCallback { state ->
+            state.bla?.uppercase() ?: "<empty string>"
+        }
+        selector.observeSelector { callbackState.add(it) }
+
+        // Initial Then
+        assertThat(callbackState).isEmpty()
+
+        // When
+        store.observationManager.onStateChanged(
+            currentDispatchCount = 0,
+            state = StateObservationState(bla = "State counter 0")
+        )
+        selector.removeAllSelectorObservers()
+        store.observationManager.onStateChanged(
+            currentDispatchCount = 0,
+            state = StateObservationState(bla = "After all observers have been removed from the selector")
+        )
+
+        // Then
+        assertThat(callbackState).hasSize(1)
+        assertThat(callbackState[0]).isEqualTo("STATE COUNTER 0")
+    }
+
+    @Test
     fun `test addSelectorToStateFlow and processCurrentStateImmediately`() {
         // Given
         val callbackState = mutableListOf<String>()
@@ -230,13 +258,12 @@ class StateObservationTest {
             initialValue = "<initial value>",
             processCurrentStateImmediately = true
         ) { state ->
-            (state.bla?.uppercase() ?: "<empty string>")
-                .also { callbackState.add(it) }
+            state.bla?.uppercase() ?: "<empty string>"
         }
+        selector.observeSelector { callbackState.add(it) }
 
         // Initial Then
-        assertThat(callbackState).hasSize(1)
-        assertThat(callbackState.first()).isEqualTo("<empty string>")
+        assertThat(callbackState).hasSize(0)
         assertThat(selector.value).isEqualTo("<empty string>")
 
         // When
@@ -244,12 +271,16 @@ class StateObservationTest {
             currentDispatchCount = 0,
             state = StateObservationState(bla = "State counter 0")
         )
+        selector.removeAllSelectorObservers()
+        store.observationManager.onStateChanged(
+            currentDispatchCount = 0,
+            state = StateObservationState(bla = "After all observers have been removed from the selector")
+        )
 
         // Then
-        assertThat(callbackState).hasSize(2)
-        assertThat(callbackState[0]).isEqualTo("<empty string>")
-        assertThat(callbackState[1]).isEqualTo("STATE COUNTER 0")
-        assertThat(selector.value).isEqualTo("STATE COUNTER 0")
+        assertThat(callbackState).hasSize(1)
+        assertThat(callbackState[0]).isEqualTo("STATE COUNTER 0")
+        assertThat(selector.value).isEqualTo("AFTER ALL OBSERVERS HAVE BEEN REMOVED FROM THE SELECTOR")
     }
 
     @Test

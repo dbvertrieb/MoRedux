@@ -36,6 +36,10 @@ abstract class Selector<STATE : State, VALUE> : StateObserver<STATE> {
 
     override fun onStateChanged(state: STATE) {
         val value = map(state)
+        notifyObservers(value)
+    }
+
+    protected fun notifyObservers(value:VALUE) {
         observerList.forEach { observer -> observer.invoke(value) }
     }
 

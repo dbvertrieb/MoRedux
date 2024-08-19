@@ -30,6 +30,8 @@ abstract class SelectorToStateFlow<STATE : State, VALUE>(
 
     override fun onStateChanged(state: STATE) {
         val value = map(state)
+
+        notifyObservers(value)
         this.value = value
     }
 }
