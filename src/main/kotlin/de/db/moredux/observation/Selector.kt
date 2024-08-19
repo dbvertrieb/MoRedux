@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.observation
+
+import de.db.moredux.State
 
 /**
  * A Selector is a special StateObserver, that is also an observable (see [observeSelector] and
@@ -34,6 +36,10 @@ abstract class Selector<STATE : State, VALUE> : StateObserver<STATE> {
 
     override fun onStateChanged(state: STATE) {
         val value = map(state)
+        notifyObservers(value)
+    }
+
+    protected fun notifyObservers(value:VALUE) {
         observerList.forEach { observer -> observer.invoke(value) }
     }
 

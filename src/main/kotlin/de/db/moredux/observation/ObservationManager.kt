@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.observation
+
+import de.db.moredux.settings.MoReduxLogger
+import de.db.moredux.settings.MoReduxSettings
+import de.db.moredux.State
 
 /**
  * The ObservationManager class handles all StateObservers and notifications upon state changes

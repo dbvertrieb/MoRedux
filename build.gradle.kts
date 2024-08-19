@@ -21,6 +21,8 @@ repositories {
 }
 // TODO version catalog
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.0")
     testImplementation("com.google.truth:truth:1.4.4")

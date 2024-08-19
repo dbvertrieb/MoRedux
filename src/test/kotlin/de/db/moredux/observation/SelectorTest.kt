@@ -14,35 +14,39 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.observation
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.jupiter.api.Test
+import de.db.moredux.State
+import org.junit.Test
 
+class SelectorTest {
 
-class ReducerCallbackToStateTest {
+    private val sut = object : Selector<SelectorState, String>() {
+        override fun map(state: SelectorState): String = state.bla?.uppercase().orEmpty()
+    }
 
     @Test
-    fun `test reduce`() {
+    fun `test observeSelector and removeAllSelectorObservers`() {
         // Given
-        val sut =
-            ReducerCallbackToState<ReducerCallbackToStateState, ReducerCallbackToStateAction.Action1> { state, _ ->
-                state.copy(bla = state.bla.lowercase())
-            }
+        var observed = ""
+        sut.observeSelector { value -> observed = value }
 
         // When
-        val actual = sut.reduce(ReducerCallbackToStateState("ALTER WERT"), ReducerCallbackToStateAction.Action1)
+        sut.onStateChanged(SelectorState("neuer wert"))
 
         // Then
-        val expected = ReducerResult(ReducerCallbackToStateState("alter wert"))
-        assertThat(actual).isEqualTo(expected)
+        assertThat(observed).isEqualTo("NEUER WERT")
+
+        // When
+        sut.removeAllSelectorObservers()
+        sut.onStateChanged(SelectorState("noch neuerer wert"))
+
+        // Then
+        assertThat(observed).isEqualTo("NEUER WERT")
     }
 
-    sealed class ReducerCallbackToStateAction : Action {
-        data object Action1 : ReducerCallbackToStateAction()
-    }
-
-    data class ReducerCallbackToStateState(val bla: String) : State {
+    data class SelectorState(val bla: String? = null) : State {
         override fun clone(): State = this.copy()
     }
 }

@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.store
+
+import de.db.moredux.Action
+import de.db.moredux.settings.MoReduxLogger
+import de.db.moredux.settings.MoReduxSettings
+import de.db.moredux.State
 
 /**
  * A StoreContainer is a container for multiple dispatchers (Store + StoreContainer).
@@ -79,26 +84,37 @@ class StoreContainer(
          */
         val stores: List<Store<*>> = mutableListOf()
 
+        /**
+         * @param store add this store to the StoreContainer
+         * @return this Builder for chaining
+         */
         inline fun <reified STATE : State> addStore(store: Store<STATE>) = also {
-            if (stores.contains(store)) {
-                MoReduxLogger.w(
-                    this::class,
-                    MoReduxSettings.LogMode.MINIMAL,
-                    "Store for %s has already been added to the store list -> Skipping add"
-                        .format(STATE::class.simpleName)
-                )
-            } else if (store.isPartOfStoreContainer()) {
-                MoReduxLogger.w(
-                    this::class,
-                    MoReduxSettings.LogMode.MINIMAL,
-                    "Store for %s has already been added to another StoreContainer -> Skipping add"
-                        .format(STATE::class.simpleName)
-                )
-            } else {
-                (stores as MutableList<Store<*>>).add(store)
+            when {
+                stores.contains(store) ->
+                    MoReduxLogger.w(
+                        this::class,
+                        MoReduxSettings.LogMode.MINIMAL,
+                        "Store for %s has already been added to the store list -> Skipping add"
+                            .format(STATE::class.simpleName)
+                    )
+
+                store.isPartOfStoreContainer() ->
+                    MoReduxLogger.w(
+                        this::class,
+                        MoReduxSettings.LogMode.MINIMAL,
+                        "Store for %s has already been added to another StoreContainer -> Skipping add"
+                            .format(STATE::class.simpleName)
+                    )
+
+                else -> {
+                    (stores as MutableList<Store<*>>).add(store)
+                }
             }
         }
 
+        /**
+         * @return the built StoreContainer
+         */
         fun build(): StoreContainer {
             if (stores.isEmpty()) {
                 MoReduxLogger.w(

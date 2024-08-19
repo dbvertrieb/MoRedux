@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.store
 
 import com.google.common.truth.Truth.assertThat
+import de.db.moredux.Action
+import de.db.moredux.State
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -132,13 +134,13 @@ class StoreContainerTest {
     private fun createStore1() =
         Store.Builder<StoreState1>()
             .withInitialState(StoreState1())
-            .registerReducer<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
             .build()
 
     private fun createStore2() =
         Store.Builder<StoreState2>()
             .withInitialState(StoreState2())
-            .registerReducer<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
+            .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
             .build()
 
     private data class StoreState1(val bla: String? = null) : State {

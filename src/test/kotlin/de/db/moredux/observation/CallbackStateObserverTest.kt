@@ -14,38 +14,30 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.observation
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
+import de.db.moredux.State
+import org.junit.jupiter.api.Test
 
-class SelectorTest {
-
-    private val sut = object : Selector<SelectorState, String>() {
-        override fun map(state: SelectorState): String = state.bla?.uppercase().orEmpty()
-    }
-
+class CallbackStateObserverTest {
     @Test
-    fun `test observeSelector and removeAllSelectorObservers`() {
+    fun `test onStateChanged`() {
         // Given
-        var observed = ""
-        sut.observeSelector { value -> observed = value }
+        var actualStatePropertyValue = "Some random inital value"
+        val sut = CallbackStateObserver<CallbackStateObserverState> { state ->
+            actualStatePropertyValue = state.dummyStateProperty
+        }
 
         // When
-        sut.onStateChanged(SelectorState("neuer wert"))
+        sut.onStateChanged(CallbackStateObserverState(dummyStateProperty = "some string"))
 
         // Then
-        assertThat(observed).isEqualTo("NEUER WERT")
-
-        // When
-        sut.removeAllSelectorObservers()
-        sut.onStateChanged(SelectorState("noch neuerer wert"))
-
-        // Then
-        assertThat(observed).isEqualTo("NEUER WERT")
+        assertThat(actualStatePropertyValue).isEqualTo("some string")
     }
 
-    data class SelectorState(val bla: String? = null) : State {
+    // Basic state implementation for testing
+    data class CallbackStateObserverState(val dummyStateProperty: String) : State {
         override fun clone(): State = this.copy()
     }
 }

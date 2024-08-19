@@ -14,8 +14,17 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.store
 
+import de.db.moredux.Action
+import de.db.moredux.settings.MoReduxLogger
+import de.db.moredux.settings.MoReduxSettings
+import de.db.moredux.observation.ObservationManager
+import de.db.moredux.reducer.Reducer
+import de.db.moredux.reducer.ReducerCallbackToState
+import de.db.moredux.reducer.ReducerResult
+import de.db.moredux.State
+import de.db.moredux.reducer.ReducerCallback
 import kotlin.reflect.KClass
 
 /**
@@ -215,6 +224,11 @@ class Store<STATE : State> private constructor(
          */
         val reducers: Map<KClass<*>, Reducer<STATE, Action>> = mutableMapOf()
 
+        /**
+         * @param initialState the initialState is mandatory. Without an initial state, the Builder.build() method will
+         * throw an Exception
+         * @return this Builder for chaining
+         */
         fun withInitialState(initialState: STATE): Builder<STATE> = also {
             this.initialState = initialState
         }
@@ -223,10 +237,20 @@ class Store<STATE : State> private constructor(
          * Register a reducer that processes [ACTION] and returns a [STATE] (not a ReducerResult) without any
          * follow up actions or effects
          */
-        inline fun <reified ACTION : Action> registerReducer(
+        inline fun <reified ACTION : Action> registerReducerToState(
             noinline codeToState: (STATE, ACTION) -> STATE
         ): Builder<STATE> = also {
             val reducer = ReducerCallbackToState(codeToState = codeToState)
+            registerReducer(reducer)
+        }
+
+        /**
+         * Register a reducer that processes [ACTION] and produces a ReducerResult
+         */
+        inline fun <reified ACTION : Action> registerReducer(
+            noinline code: (STATE, ACTION) -> ReducerResult<STATE>
+        ): Builder<STATE> = also {
+            val reducer = ReducerCallback(code = code)
             registerReducer(reducer)
         }
 
@@ -267,6 +291,10 @@ class Store<STATE : State> private constructor(
             return this
         }
 
+        /**
+         * @return the built Store
+         * @throws IllegalStateException in case the initialState is not set
+         */
         fun build(): Store<STATE> = Store(
             checkNotNull(initialState) { "InitialState is not set" },
             reducers as MutableMap<KClass<*>, Reducer<STATE, Action>>

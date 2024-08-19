@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package de.db.moredux
+package de.db.moredux.reducer
+
+import de.db.moredux.Action
+import de.db.moredux.State
 
 /**
  * The ReducerCallback maps a callback function to a regular Reducer, so no special class extending the abstract Reducer
