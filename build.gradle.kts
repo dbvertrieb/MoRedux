@@ -3,8 +3,7 @@ import java.net.URI
 plugins {
     kotlin("jvm") version libs.versions.kotlin
     `maven-publish`
-    // TODO reenable signing
-//    signing
+    signing
     id("pl.allegro.tech.build.axion-release") version libs.versions.axion
 }
 
@@ -15,6 +14,7 @@ scmVersion {
 
 group = "io.github.dbvertrieb"
 version = scmVersion.version
+extra["isReleaseVersion"] = !version.toString().endsWith("SNAPSHOT")
 
 repositories {
     mavenCentral()
@@ -38,6 +38,7 @@ kotlin {
 }
 
 java {
+    // Additionally create javadoc and sources JAR upon publish
     withJavadocJar()
     withSourcesJar()
 }
@@ -87,12 +88,28 @@ publishing {
                 password = System.getenv("GITHUB_TOKEN")
             }
         }
+        maven {
+            name = "OSSRH"
+            url = URI("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = System.getenv("MAVEN_USERNAME")
+                password = System.getenv("MAVEN_PASSWORD")
+            }
+        }
     }
 }
-// TODO reenable signing
-//signing {
-//    sign(publishing.publications["mavenJava"])
-//}
+
+tasks.withType<Sign>().configureEach {
+    // Skip signing completely, if the current build is not a release version
+    onlyIf("isReleaseVersion is set") { project.extra["isReleaseVersion"] as Boolean }
+}
+
+signing {
+    val signingKey: String? by project
+    val signingPassword: String? by project
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign(publishing.publications["mavenJava"])
+}
 
 tasks.javadoc {
     if (JavaVersion.current().isJava9Compatible) {
