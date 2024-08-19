@@ -1,11 +1,10 @@
 import java.net.URI
 
 plugins {
-    kotlin("jvm") version "2.0.0"
+    kotlin("jvm") version libs.versions.kotlin
     `maven-publish`
-    // TODO reenable signing
-//    signing
-    id("pl.allegro.tech.build.axion-release") version "1.18.3"
+    signing
+    id("pl.allegro.tech.build.axion-release") version libs.versions.axion
 }
 
 // Axion plugin settings
@@ -15,18 +14,19 @@ scmVersion {
 
 group = "io.github.dbvertrieb"
 version = scmVersion.version
+extra["isReleaseVersion"] = !version.toString().endsWith("SNAPSHOT")
 
 repositories {
     mavenCentral()
 }
-// TODO version catalog
-dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 
-    testImplementation(kotlin("test"))
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.0")
-    testImplementation("com.google.truth:truth:1.4.4")
-    testImplementation("org.mockito:mockito-inline:5.2.0")
+dependencies {
+    implementation(libs.kotlinx.coroutines)
+
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.junit.jupiter.params)
+    testImplementation(libs.google.truth)
+    testImplementation(libs.mockito.inline)
 }
 
 tasks.test {
@@ -38,6 +38,7 @@ kotlin {
 }
 
 java {
+    // Additionally create javadoc and sources JAR upon publish
     withJavadocJar()
     withSourcesJar()
 }
@@ -87,12 +88,28 @@ publishing {
                 password = System.getenv("GITHUB_TOKEN")
             }
         }
+        maven {
+            name = "OSSRH"
+            url = URI("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = System.getenv("MAVEN_USERNAME")
+                password = System.getenv("MAVEN_PASSWORD")
+            }
+        }
     }
 }
-// TODO reenable signing
-//signing {
-//    sign(publishing.publications["mavenJava"])
-//}
+
+tasks.withType<Sign>().configureEach {
+    // Skip signing completely, if the current build is not a release version
+    onlyIf("isReleaseVersion is set") { project.extra["isReleaseVersion"] as Boolean }
+}
+
+signing {
+    val signingKey: String? by project
+    val signingPassword: String? by project
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign(publishing.publications["mavenJava"])
+}
 
 tasks.javadoc {
     if (JavaVersion.current().isJava9Compatible) {
