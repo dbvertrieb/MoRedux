@@ -1,3 +1,5 @@
+import com.vanniktech.maven.publish.JavaLibrary
+import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
@@ -37,12 +39,6 @@ kotlin {
     jvmToolchain(17)
 }
 
-java {
-    // Additionally create javadoc and sources JAR upon publish
-    withJavadocJar()
-    withSourcesJar()
-}
-
 publishing {
     repositories {
         maven {
@@ -59,9 +55,16 @@ publishing {
 mavenPublishing {
     // See https://vanniktech.github.io/gradle-maven-publish-plugin/central/ for documentation of vanniktech maven-publish plugin
 
+    // Publish JavadocJar and sourceJar as well
+    configure(
+        JavaLibrary(
+            javadocJar = JavadocJar.Javadoc(),
+            sourcesJar = true,
+        )
+    )
+
     // Publishing to https://central.sonatype.com/
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
-
     // Only apply signing when it's a release build
     if (project.extra["isReleaseVersion"] as Boolean) {
         signAllPublications()
@@ -78,6 +81,7 @@ mavenPublishing {
         description.set("A Redux inspired library in Kotlin to manage UI state and react on state changes")
         inceptionYear.set("2024")
         url.set("https://github.com/dbvertrieb/moredux")
+
         licenses {
             license {
                 name.set("The Apache License, Version 2.0")
@@ -94,8 +98,6 @@ mavenPublishing {
         }
         scm {
             url = "https://github.com/dbvertrieb/moredux"
-            connection.set("scm:git:git://github.com/dbvertrieb/moredux.git")
-            developerConnection.set("scm:git:ssh://git@github.com/dbvertrieb/moredux.git")
         }
     }
 }
