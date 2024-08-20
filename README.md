@@ -9,31 +9,10 @@ MoRedux is a predictable state management method. It centralizes the state of an
 
 # Download
 
-Replace **\$VERSION\$** with the released version of your choice. The recommended version is the latest.
+We are working on the release to mavenCentral. When MoRedux is published on mavenCentral, we will publish the package coordinates here.
 
-## gradle
+If you are impatient, download the latest moredux-VERSION.jar from the gitHub Packages page https://github.com/dbvertrieb/MoRedux/packages/2229548 and integrate it into your project.
 
-```
-# on build.gradle.kts on project level
-repositories {
-    mavenCentral()
-}
-
-# wherever you declare your dependencies (project / module level)
-dependencies {
-    implementation("io.github.dbvertrieb:moredux:$VERSION$")
-}
-```
-
-## Maven
-
-```
-<dependency>
-    <groupId>io.github.dbvertrieb</groupId>
-    <artifactId>moredux</artifactId>
-    <version>$VERSION$</version>
-</dependency>
-```
 # When to use MoRedux
 
 The Redux method ensures that state changes are predictable and easy to track, which is crucial in larger applications. If your application has a lot of shared state that needs to be accessible across multiple components or the state contains a lot of data,especially when the state is changed in bigger user interfaces, the Redux method in general helps to manage user interactions and state changes.
