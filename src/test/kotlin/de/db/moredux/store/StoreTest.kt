@@ -167,7 +167,7 @@ class StoreTest {
         val initialState = StoreState()
         val store = Store.Builder<StoreState>()
             .withInitialState(initialState)
-            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+            .registerReducer<TestAction1> { state, _ -> ReducerResult(state.copy(bla = "Reducer 1")) }
             .build()
 
         // When
