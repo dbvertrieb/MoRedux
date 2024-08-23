@@ -32,7 +32,7 @@ import kotlin.reflect.KClass
  * at this store.
  */
 class Store<STATE : State> private constructor(
-    initialState: STATE,
+    private val initialState: STATE,
     private val reducers: MutableMap<KClass<*>, Reducer<STATE, Action>>
 ) : Dispatcher {
     private var _state: STATE = initialState
@@ -145,6 +145,14 @@ class Store<STATE : State> private constructor(
             "%s rehydrate state".format(currentDispatchCount.createPrefix())
         )
         setNewState(currentDispatchCount, ReducerResult(state))
+    }
+
+    /**
+     * Reset the store to its initial state (the one set in the withInitialState of the Builder).
+     * All registered reducers will be left untouched.
+     */
+    fun reset() {
+        this._state = initialState
     }
 
     /**

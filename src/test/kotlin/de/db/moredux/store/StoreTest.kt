@@ -162,6 +162,27 @@ class StoreTest {
     }
 
     @Test
+    fun `test reset`() {
+        // Given
+        val initialState = StoreState()
+        val store = Store.Builder<StoreState>()
+            .withInitialState(initialState)
+            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+            .build()
+
+        // When
+        store.dispatch(TestAction1)
+        assertThat(store.state.bla).isEqualTo("Reducer 1")
+
+        // When
+        store.reset()
+
+        // Then
+        assertThat(store.state).isEqualTo(initialState)
+        assertThat(store.state.bla).isNull()
+    }
+
+    @Test
     fun `test isPartOfStoreContainer without adding an injected dispatcher`() {
         // Given
         val store = Store.Builder<StoreState>()
