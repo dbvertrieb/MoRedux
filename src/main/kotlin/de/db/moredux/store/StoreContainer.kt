@@ -26,8 +26,8 @@ import de.db.moredux.State
  * An Action passed to the StoreContainers dispatch method is passed on to the first dispatcher,
  * that wants that action. As of now, dispatching a single action to multiple Dispatcher is forbidden.
  */
-class StoreContainer(
-    private val stores: MutableList<Store<*>>
+class StoreContainer private constructor(
+    private val stores: MutableList<Store<*>> = mutableListOf()
 ) : Dispatcher {
 
     private var dispatchCounter = DispatchCounter()
