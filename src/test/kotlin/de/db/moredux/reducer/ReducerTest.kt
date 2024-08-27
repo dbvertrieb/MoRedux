@@ -49,11 +49,11 @@ class ReducerTest {
         }
 
         // When
-        val actual = sut.reduce(ReducerState("alter wert"), ReducerAction.Action1)
+        val actual = sut.reduce(ReducerState("old value"), ReducerAction.Action1)
 
         // Then
         val expected = ReducerResult(
-            ReducerState("ALTER WERT"),
+            ReducerState("OLD VALUE"),
             ReducerAction.Action2
         )
         assertThat(actual).isEqualTo(expected)

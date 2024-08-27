@@ -34,11 +34,11 @@ class ReducerCallbackTest {
         }
 
         // When
-        val actual = sut.reduce(ReducerCallbackState("alter wert"), ReducerCallbackAction.Action1)
+        val actual = sut.reduce(ReducerCallbackState("old value"), ReducerCallbackAction.Action1)
 
         // Then
         val expected = ReducerResult(
-            ReducerCallbackState("ALTER WERT"),
+            ReducerCallbackState("OLD VALUE"),
             ReducerCallbackAction.Action2
         )
         assertThat(actual).isEqualTo(expected)
