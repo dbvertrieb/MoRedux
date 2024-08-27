@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024, DB Vertrieb GmbH.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,28 +34,28 @@ class SelectorToStateFlowTest {
         sut.observeSelector { value -> observed = value }
 
         // When
-        sut.onStateChanged(SelectorState("neuer wert"))
+        sut.onStateChanged(SelectorState("new value"))
 
         // Then
-        assertThat(observed).isEqualTo("NEUER WERT")
+        assertThat(observed).isEqualTo("NEW VALUE")
 
         // When
         sut.removeAllSelectorObservers()
-        sut.onStateChanged(SelectorState("noch neuerer wert"))
+        sut.onStateChanged(SelectorState("very new value"))
 
         // Then
-        assertThat(observed).isEqualTo("NEUER WERT")
+        assertThat(observed).isEqualTo("NEW VALUE")
     }
 
     @Test
     fun `test StateFlow updates`() {
 
         // When
-        sut.onStateChanged(SelectorState("neuer wert"))
+        sut.onStateChanged(SelectorState("new value"))
 
         // Then
         assertThat(sut).isInstanceOf(MutableStateFlow::class.java)
-        assertThat(sut.value).isEqualTo("NEUER WERT")
+        assertThat(sut.value).isEqualTo("NEW VALUE")
     }
 
     data class SelectorState(val bla: String? = null) : State {

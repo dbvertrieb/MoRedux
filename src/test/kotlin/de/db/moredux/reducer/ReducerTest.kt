@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024, DB Vertrieb GmbH.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,11 +49,11 @@ class ReducerTest {
         }
 
         // When
-        val actual = sut.reduce(ReducerState("alter wert"), ReducerAction.Action1)
+        val actual = sut.reduce(ReducerState("old value"), ReducerAction.Action1)
 
         // Then
         val expected = ReducerResult(
-            ReducerState("ALTER WERT"),
+            ReducerState("OLD VALUE"),
             ReducerAction.Action2
         )
         assertThat(actual).isEqualTo(expected)
