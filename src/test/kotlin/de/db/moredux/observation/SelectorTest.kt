@@ -33,17 +33,17 @@ class SelectorTest {
         sut.observeSelector { value -> observed = value }
 
         // When
-        sut.onStateChanged(SelectorState("neuer wert"))
+        sut.onStateChanged(SelectorState("new value"))
 
         // Then
-        assertThat(observed).isEqualTo("NEUER WERT")
+        assertThat(observed).isEqualTo("NEW VALUE")
 
         // When
         sut.removeAllSelectorObservers()
-        sut.onStateChanged(SelectorState("noch neuerer wert"))
+        sut.onStateChanged(SelectorState("very new value"))
 
         // Then
-        assertThat(observed).isEqualTo("NEUER WERT")
+        assertThat(observed).isEqualTo("VERY NEW VALUE")
     }
 
     data class SelectorState(val bla: String? = null) : State {
