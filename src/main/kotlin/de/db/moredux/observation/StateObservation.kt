@@ -106,21 +106,39 @@ fun <STATE : State, VALUE> Store<STATE>.addSelectorFromCallback(
  * The created Selector will be treated like any other StateObserver.
  *
  * @param initialValue the initial value o the created StateFlow
- * @param processCurrentStateImmediately if true, the current state will be pushed into the passed [map]
  * @param map the [map] function maps the state [STATE] to [VALUE]. The [VALUE] is published to the created MutableStateFlow
  * @return the SelectorToStateFlow instance that was constructed out of [map] - it's a MutableStateFlow under the hood
  * @see addSelectorFromCallback
  */
 fun <STATE : State, VALUE> Store<STATE>.addSelectorStateFlow(
     initialValue: VALUE,
-    processCurrentStateImmediately: Boolean = false,
     map: (STATE) -> VALUE
 ): SelectorToStateFlow<STATE, VALUE> {
     val mutableStateFlow = MutableStateFlow(initialValue)
     val selector = object : SelectorToStateFlow<STATE, VALUE>(mutableStateFlow) {
         override fun map(state: STATE): VALUE = map(state)
     }
-    addSelector(processCurrentStateImmediately, selector)
+    addSelector(processCurrentStateImmediately = false, selector)
+    return selector
+}
+
+/**
+ * Register a [map] as a Selector. This particular Selector extends a Kotlin coroutines MutableStateFlow and can be used as such.
+ * The created Selector will be treated like any other StateObserver.
+ *
+ * The initial value of the MutableStateFlow will the result of [map] over the current state of the store receiver.
+ *
+ * @param map the [map] function maps the state [STATE] to [VALUE]. The [VALUE] is published to the created MutableStateFlow
+ * @return the SelectorToStateFlow instance that was constructed out of [map] - it's a MutableStateFlow under the hood
+ * @see addSelectorFromCallback
+ */
+fun <STATE : State, VALUE> Store<STATE>.addSelectorStateFlow(map: (STATE) -> VALUE): SelectorToStateFlow<STATE, VALUE> {
+    val initialValue = map(this.state)
+    val mutableStateFlow = MutableStateFlow(initialValue)
+    val selector = object : SelectorToStateFlow<STATE, VALUE>(mutableStateFlow) {
+        override fun map(state: STATE): VALUE = map(state)
+    }
+    addSelector(processCurrentStateImmediately = false, selector = selector)
     return selector
 }
 

@@ -251,13 +251,10 @@ class StateObservationTest {
     }
 
     @Test
-    fun `test addSelectorToStateFlow and processCurrentStateImmediately`() {
+    fun `test addSelectorToStateFlow without initial value`() {
         // Given
         val callbackState = mutableListOf<String>()
-        val selector = store.addSelectorStateFlow(
-            initialValue = "<initial value>",
-            processCurrentStateImmediately = true
-        ) { state ->
+        val selector = store.addSelectorStateFlow { state ->
             state.bla?.uppercase() ?: "<empty string>"
         }
         selector.observeSelector { callbackState.add(it) }
@@ -284,13 +281,12 @@ class StateObservationTest {
     }
 
     @Test
-    fun `test addSelectorToStateFlow and without processCurrentStateImmediately`() {
+    fun `test addSelectorToStateFlow and with initial value`() {
         // Given
         val callbackState = mutableListOf<String>()
-        val selector = store.addSelectorStateFlow(
-            initialValue = "<initial value>",
-            processCurrentStateImmediately = false
-        ) { state -> state.bla?.uppercase() ?: "<empty string>" }
+        val selector = store.addSelectorStateFlow(initialValue = "<initial value>") { state ->
+            state.bla?.uppercase() ?: "<empty string>"
+        }
 
         // Then
         assertThat(callbackState).hasSize(0)
