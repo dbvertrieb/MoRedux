@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * Register a [stateObserver] that will be notified everytime the state changes. A StateObserver may only
  * be registered once.
  *
- * @param processCurrentStateImmediately if true, the current state will be pushed into the passed [stateObserver]
+ * @param processCurrentStateImmediately if true, the current state will be pushed immediately into the passed [stateObserver]
  * @param stateObserver the StateObserver instance that listens upon onStateChanged
  * @return the [stateObserver]
  */
@@ -39,7 +39,7 @@ fun <STATE : State> Store<STATE>.addStateObserver(
 /**
  * Register a [callback] as a StateObserver. The [callback] will be treated like any other StateObserver
  *
- * @param processCurrentStateImmediately if true, the current state will be pushed into the passed [callback]
+ * @param processCurrentStateImmediately if true, the current state will be pushed immediately into the passed [callback]
  * @param callback the callback function with which a StateObserver is constructed
  * @return the StateObserver instance that was constructed out of [callback]
  * @see ObservationManager.addStateObserver
@@ -70,11 +70,11 @@ fun <STATE : State, VALUE> Store<STATE>.addSelector(
  * Register a [map] function as a Selector. The [map] will be wrapped in a Selector and is treated like any
  * other StateObserver.
  *
- * @param processCurrentStateImmediately if true, the current state will be pushed into the passed [map]
+ * @param processCurrentStateImmediately if true, the current state will be pushed immediately into the passed [map]
  * @param observer in order to be able to process the current state immediately, an observer function has
  * to be passed as argument here. The Selector is created inside this function, which makes it impossible to set any
  * observer function before processing the current state. If [processCurrentStateImmediately] is true anf [observer]
- * is null, then you will simply loose the current state. Every follow up state will be observed correctly though.
+ * is null, then you will simply lose the current state. Every follow-up state will be observed correctly though.
  * @param map the [map] function maps the state [STATE] to [VALUE]. The [VALUE] is published to the Selector
  * @return the Selector instance that was constructed out of [map]
  * @see addSelectorFromCallback
@@ -132,15 +132,11 @@ fun <STATE : State, VALUE> Store<STATE>.addSelectorStateFlow(
  * @return the SelectorToStateFlow instance that was constructed out of [map] - it's a MutableStateFlow under the hood
  * @see addSelectorFromCallback
  */
-fun <STATE : State, VALUE> Store<STATE>.addSelectorStateFlow(map: (STATE) -> VALUE): SelectorToStateFlow<STATE, VALUE> {
-    val initialValue = map(this.state)
-    val mutableStateFlow = MutableStateFlow(initialValue)
-    val selector = object : SelectorToStateFlow<STATE, VALUE>(mutableStateFlow) {
-        override fun map(state: STATE): VALUE = map(state)
-    }
-    addSelector(processCurrentStateImmediately = false, selector = selector)
-    return selector
-}
+fun <STATE : State, VALUE> Store<STATE>.addSelectorStateFlow(map: (STATE) -> VALUE): SelectorToStateFlow<STATE, VALUE> =
+    this.addSelectorStateFlow(
+        initialValue = map(this.state),
+        map = map
+    )
 
 /**
  * Remove the passed [stateObserver] from the observer list. This may be any StateObserver instance including Selectors
