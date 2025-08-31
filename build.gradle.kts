@@ -39,6 +39,17 @@ kotlin {
     jvmToolchain(17)
 }
 
+// Signing is deactivated in case of a publishToMavenLocal
+// This should help testing MoRedux changes locally
+gradle.taskGraph.whenReady {
+    val taskName = "publishToMavenLocal"
+    val isSigningEnabled = allTasks.firstOrNull { it.name == taskName } == null
+    if (!isSigningEnabled) {
+        tasks.withType<Sign>().configureEach { onlyIf { isSigningEnabled } }
+        logger.info("Discovered execution of task '$taskName' -> Signing is disabled")
+    }
+}
+
 publishing {
     repositories {
         maven {

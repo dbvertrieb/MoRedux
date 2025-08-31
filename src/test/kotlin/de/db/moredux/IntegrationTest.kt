@@ -19,6 +19,7 @@ package de.db.moredux
 import com.google.common.truth.Truth.assertThat
 import de.db.moredux.IntegrationTest.TodoAction.Add
 import de.db.moredux.IntegrationTest.TodoAction.SetDone
+import de.db.moredux.middleware.MiddlewareResult
 import de.db.moredux.observation.addSelectorStateFlow
 import de.db.moredux.reducer.Reducer
 import de.db.moredux.reducer.ReducerResult
@@ -31,12 +32,13 @@ class IntegrationTest {
     // Define the state
     data class TodoState(
         val todos: List<String>,
-        val done: List<Boolean>
+        val done: List<Boolean>,
+        val middlewareCounter: Int
     ) : State {
         override fun clone(): State = copy()
     }
 
-    // Define the possibleactions
+    // Define the possible actions
     sealed class TodoAction : Action {
         data class Add(val todo: String) : TodoAction()
         data class SetDone(val index: Int) : TodoAction()
@@ -61,7 +63,7 @@ class IntegrationTest {
     }
 
     @Test
-    fun test() {
+    fun `test with none breaking middlewares`() {
 
         val log = mutableListOf<String>()
         MoReduxSettings.logDebug = { tag, message -> log.add("DEBUG - $tag: $message") }
@@ -69,18 +71,22 @@ class IntegrationTest {
 
         // Build the store and register all reducers
         val store = Store.Builder<TodoState>()
-            .withInitialState(TodoState(todos = emptyList(), done = emptyList()))
-            .registerReducer<Add>(ReducerAddTodo())
-            .registerReducerToState<SetDone> { state, action ->
-                // Example of a reducer implemented as function that simply returns a new state
-                val done = state.done.toMutableList()
-                done[action.index] = true
+                .withInitialState(TodoState(todos = emptyList(), done = emptyList(), middlewareCounter = 0))
+                .registerReducer<Add>(ReducerAddTodo())
+                .registerReducerToState<SetDone> { state, action ->
+                    // Example of a reducer implemented as function that simply returns a new state
+                    val done = state.done.toMutableList()
+                    done[action.index] = true
 
-                state.copy(done = done.toList())
-            }
-            .build()
+                    state.copy(done = done.toList())
+                }
+                .registerMiddleware { state, _ ->
+                    state.copy(middlewareCounter = state.middlewareCounter + 1)
+                    MiddlewareResult.Continue(state)
+                }
+                .build()
 
-        // setup a selector only with todos that have not been done yet
+        // set up a selector only with todos that have not been done yet
         val unfinishedTodos = store.addSelectorStateFlow(emptyList()) { state ->
             state.todos.filterIndexed { index, _ -> !state.done[index] }
         }
@@ -92,6 +98,51 @@ class IntegrationTest {
 
         // Then
         assertThat(unfinishedTodos.value).isEqualTo(listOf("Cook dinner"))
+        assertThat(store.state.middlewareCounter).isEqualTo(3)
+//        println(log)
+    }
+
+    @Test
+    fun `test with breaking middlewares`() {
+
+        val log = mutableListOf<String>()
+        MoReduxSettings.logDebug = { tag, message -> log.add("DEBUG - $tag: $message") }
+        MoReduxSettings.logWarn = { tag, message -> log.add("WARN - $tag: $message") }
+
+        // Build the store and register all reducers
+        val store = Store.Builder<TodoState>()
+                .withInitialState(TodoState(todos = emptyList(), done = emptyList(), middlewareCounter = 0))
+                .registerReducer<Add>(ReducerAddTodo())
+                .registerReducerToState<SetDone> { state, action ->
+                    // Example of a reducer implemented as function that simply returns a new state
+                    val done = state.done.toMutableList()
+                    done[action.index] = true
+
+                    state.copy(done = done.toList())
+                }
+                .registerMiddleware { _, _ ->
+                    MiddlewareResult.Break()
+                }
+                .registerMiddleware { state, _ ->
+                    state.copy(middlewareCounter = state.middlewareCounter + 1)
+                    MiddlewareResult.Continue(state)
+                }
+                .build()
+
+        // set up a selector only with todos that have not been done yet
+        val unfinishedTodos = store.addSelectorStateFlow(emptyList()) { state ->
+            state.todos.filterIndexed { index, _ -> !state.done[index] }
+        }
+
+        // Perform some actions - these would be actions trigger by user input - all of them are not executed since the
+        // the first middleware breaks
+        store.dispatch(Add("Invite friends"))
+        store.dispatch(Add("Cook dinner"))
+        store.dispatch(SetDone(0))
+
+        // Then
+        assertThat(unfinishedTodos.value).isEmpty()
+        assertThat(store.state.middlewareCounter).isEqualTo(0)
 //        println(log)
     }
 }
