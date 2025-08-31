@@ -251,19 +251,19 @@ class Store<STATE : State> private constructor(
      * Process all steps when a new state is set/present - publishing, historical bookkeeping, effect execution
      */
     private fun setReducerResult(currentDispatchCount: Int, reducerResult: ReducerResult<STATE>) {
-        if (_state != state) {
+        if (_state != reducerResult.state) {
             MoReduxLogger.d(
                 clazz = this::class,
                 logMode = MoReduxSettings.LogMode.FULL,
                 message = "%s Store new state".format(currentDispatchCount.createPrefix())
             )
-            _state = state
+            _state = reducerResult.state
             MoReduxLogger.d(
                 clazz = this::class,
                 logMode = MoReduxSettings.LogMode.FULL,
                 message = "%s Publish state change".format(currentDispatchCount.createPrefix())
             )
-            observationManager.onStateChanged(currentDispatchCount, state)
+            observationManager.onStateChanged(currentDispatchCount, reducerResult.state)
         } else {
             MoReduxLogger.d(
                 clazz = this::class,

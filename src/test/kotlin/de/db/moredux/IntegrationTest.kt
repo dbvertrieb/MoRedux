@@ -81,8 +81,8 @@ class IntegrationTest {
                     state.copy(done = done.toList())
                 }
                 .registerMiddleware { state, _ ->
-                    state.copy(middlewareCounter = state.middlewareCounter + 1)
-                    MiddlewareResult.Continue(state)
+                    val newState = state.copy(middlewareCounter = state.middlewareCounter + 1)
+                    MiddlewareResult.Continue(newState)
                 }
                 .build()
 
@@ -124,8 +124,8 @@ class IntegrationTest {
                     MiddlewareResult.Break()
                 }
                 .registerMiddleware { state, _ ->
-                    state.copy(middlewareCounter = state.middlewareCounter + 1)
-                    MiddlewareResult.Continue(state)
+                    val newState = state.copy(middlewareCounter = state.middlewareCounter + 1)
+                    MiddlewareResult.Continue(newState)
                 }
                 .build()
 
