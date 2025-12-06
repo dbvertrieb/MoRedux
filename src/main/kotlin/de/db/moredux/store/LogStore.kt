@@ -24,7 +24,7 @@ open class LogStore<STATE : State>(
 
 class LogMiddleware<STATE : State>(
     override val currentDispatchCount: Int,
-    val middlewareIndex: Int,
+    middlewareIndex: Int,
     clazz: KClass<STATE>
 ) : LogStore<STATE>(currentDispatchCount, clazz) {
 

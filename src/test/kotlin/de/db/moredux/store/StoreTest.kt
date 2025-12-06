@@ -26,7 +26,6 @@ import de.db.moredux.settings.MoReduxSettings
 import de.db.moredux.settings.MoReduxSettings.LogMode
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 
 class StoreTest {
@@ -249,7 +248,7 @@ class StoreTest {
         var postMiddlewareHasBeenProcessed = false
         val store = Store.Builder<StoreState>()
                 .withInitialState(StoreState())
-                .registerMiddleware { _, action, next ->
+                .registerMiddleware { _, _, next ->
                     preMiddlewareHasBeenProcessed = true
                     next(TestAction2)
                     postMiddlewareHasBeenProcessed = true
