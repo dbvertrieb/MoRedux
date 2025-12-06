@@ -19,7 +19,6 @@ package de.db.moredux
 import com.google.common.truth.Truth.assertThat
 import de.db.moredux.IntegrationTest.TodoAction.Add
 import de.db.moredux.IntegrationTest.TodoAction.SetDone
-import de.db.moredux.middleware.MiddlewareResult
 import de.db.moredux.observation.addSelectorStateFlow
 import de.db.moredux.reducer.Reducer
 import de.db.moredux.reducer.ReducerResult
@@ -42,6 +41,7 @@ class IntegrationTest {
     sealed class TodoAction : Action {
         data class Add(val todo: String) : TodoAction()
         data class SetDone(val index: Int) : TodoAction()
+        data object IncrementMiddlewareCounter : TodoAction()
     }
 
     // Example of a reducer implemented as class extending teh Reducer interface
@@ -73,6 +73,9 @@ class IntegrationTest {
         val store = Store.Builder<TodoState>()
                 .withInitialState(TodoState(todos = emptyList(), done = emptyList(), middlewareCounter = 0))
                 .registerReducer<Add>(ReducerAddTodo())
+                .registerReducerToState<TodoAction.IncrementMiddlewareCounter> { state, _ ->
+                    state.copy(middlewareCounter = state.middlewareCounter + 1)
+                }
                 .registerReducerToState<SetDone> { state, action ->
                     // Example of a reducer implemented as function that simply returns a new state
                     val done = state.done.toMutableList()
@@ -80,9 +83,12 @@ class IntegrationTest {
 
                     state.copy(done = done.toList())
                 }
-                .registerMiddleware { state, _ ->
-                    val newState = state.copy(middlewareCounter = state.middlewareCounter + 1)
-                    MiddlewareResult.Continue(newState)
+                .registerMiddleware { store, action, next ->
+                    // Make sure the same action is not processed twice - infinite recursion guard
+                    if (action != TodoAction.IncrementMiddlewareCounter) {
+                        store.dispatch(TodoAction.IncrementMiddlewareCounter)
+                    }
+                    next(action)
                 }
                 .build()
 
@@ -120,12 +126,12 @@ class IntegrationTest {
 
                     state.copy(done = done.toList())
                 }
-                .registerMiddleware { _, _ ->
-                    MiddlewareResult.Break()
+                .registerMiddleware { _, _, _ ->
+                    /* do nothing, do not call "next" callback */
                 }
-                .registerMiddleware { state, _ ->
-                    val newState = state.copy(middlewareCounter = state.middlewareCounter + 1)
-                    MiddlewareResult.Continue(newState)
+                .registerMiddleware { store, action, next ->
+                    store.dispatch(TodoAction.IncrementMiddlewareCounter)
+                    next(action)
                 }
                 .build()
 

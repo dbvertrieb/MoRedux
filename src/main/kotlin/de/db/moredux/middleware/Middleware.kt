@@ -2,13 +2,13 @@ package de.db.moredux.middleware
 
 import de.db.moredux.Action
 import de.db.moredux.State
+import de.db.moredux.store.Store
 
 fun interface Middleware<STATE : State> {
     /**
-     * @param state the current state
-     * @param action the action that will be dispatched afterward
-     * @return a MiddlewareResult telling the middleware processing loop how to
-     * proceed with the processing loop and what to do with a changed state and
+     * @param store the matching store to the middleware - contributes the dispatcher and the state
+     * @param action the action that is currently processed
+     * @param next the method that passes an action ([action] or some replacement) to the next middleware
      */
-    operator fun invoke(state: STATE, action: Action): MiddlewareResult<STATE>
+    operator fun invoke(store: Store<STATE>, action: Action, next: (Action) -> Any)
 }

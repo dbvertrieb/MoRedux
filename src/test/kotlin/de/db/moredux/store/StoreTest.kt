@@ -22,8 +22,11 @@ import de.db.moredux.State
 import de.db.moredux.observation.addStateObserver
 import de.db.moredux.reducer.Reducer
 import de.db.moredux.reducer.ReducerResult
+import de.db.moredux.settings.MoReduxSettings
+import de.db.moredux.settings.MoReduxSettings.LogMode
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 
 class StoreTest {
@@ -32,10 +35,10 @@ class StoreTest {
     fun `test teardown`() {
         // Given
         val store = Store.Builder<StoreState>()
-            .withInitialState(StoreState())
-            .registerReducerToState<TestAction1> { state, _ -> state }
-            .registerReducerToState<TestAction2> { state, _ -> state }
-            .build()
+                .withInitialState(StoreState())
+                .registerReducerToState<TestAction1> { state, _ -> state }
+                .registerReducerToState<TestAction2> { state, _ -> state }
+                .build()
         val callbackState = mutableListOf<StoreState>()
         store.addStateObserver { state -> callbackState.add(state) }
 
@@ -53,10 +56,10 @@ class StoreTest {
     fun `test wants`() {
         // Given
         val store = Store.Builder<StoreState>()
-            .withInitialState(StoreState())
-            .registerReducerToState<TestAction1> { state, _ -> state }
-            .registerReducerToState<TestAction2> { state, _ -> state }
-            .build()
+                .withInitialState(StoreState())
+                .registerReducerToState<TestAction1> { state, _ -> state }
+                .registerReducerToState<TestAction2> { state, _ -> state }
+                .build()
 
         // When & Then
         assertThat(store.wants(TestAction1)).isTrue()
@@ -70,16 +73,16 @@ class StoreTest {
         var testReducer1Executed = false
         var testReducer2Executed = false
         val store = Store.Builder<StoreState>()
-            .withInitialState(StoreState())
-            .registerReducerToState<TestAction1> { state, _ ->
-                testReducer1Executed = true
-                state.copy(bla = "Reducer 1")
-            }
-            .registerReducerToState<TestAction2> { state, _ ->
-                testReducer2Executed = true
-                state.copy(bla = "Reducer 2")
-            }
-            .build()
+                .withInitialState(StoreState())
+                .registerReducerToState<TestAction1> { state, _ ->
+                    testReducer1Executed = true
+                    state.copy(bla = "Reducer 1")
+                }
+                .registerReducerToState<TestAction2> { state, _ ->
+                    testReducer2Executed = true
+                    state.copy(bla = "Reducer 2")
+                }
+                .build()
 
         val callbackState = mutableListOf<StoreState>()
         store.addStateObserver { state -> callbackState.add(state) }
@@ -99,10 +102,10 @@ class StoreTest {
     fun `test republish`() {
         // Given
         val store = Store.Builder<StoreState>()
-            .withInitialState(StoreState())
-            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
-            .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
-            .build()
+                .withInitialState(StoreState())
+                .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+                .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
+                .build()
 
         val callbackState = mutableListOf<StoreState>()
         store.addStateObserver { state -> callbackState.add(state) }
@@ -122,10 +125,10 @@ class StoreTest {
     fun `test rehydrate different state`() {
         // Given
         val store = Store.Builder<StoreState>()
-            .withInitialState(StoreState())
-            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
-            .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
-            .build()
+                .withInitialState(StoreState())
+                .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+                .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
+                .build()
 
         val callbackState = mutableListOf<StoreState>()
         store.addStateObserver { state -> callbackState.add(state) }
@@ -144,10 +147,10 @@ class StoreTest {
     fun `test rehydrate same state`() {
         // Given
         val store = Store.Builder<StoreState>()
-            .withInitialState(StoreState())
-            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
-            .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
-            .build()
+                .withInitialState(StoreState())
+                .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+                .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
+                .build()
 
         val callbackState = mutableListOf<StoreState>()
         store.addStateObserver { state -> callbackState.add(state) }
@@ -166,9 +169,9 @@ class StoreTest {
         // Given
         val initialState = StoreState()
         val store = Store.Builder<StoreState>()
-            .withInitialState(initialState)
-            .registerReducer<TestAction1> { state, _ -> ReducerResult(state.copy(bla = "Reducer 1")) }
-            .build()
+                .withInitialState(initialState)
+                .registerReducer<TestAction1> { state, _ -> ReducerResult(state.copy(bla = "Reducer 1")) }
+                .build()
 
         // When
         store.dispatch(TestAction1)
@@ -186,9 +189,9 @@ class StoreTest {
     fun `test isPartOfStoreContainer without adding an injected dispatcher`() {
         // Given
         val store = Store.Builder<StoreState>()
-            .withInitialState(StoreState())
-            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
-            .build()
+                .withInitialState(StoreState())
+                .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+                .build()
 
         // When
         val actual = store.isPartOfStoreContainer()
@@ -201,9 +204,9 @@ class StoreTest {
     fun `test isPartOfStoreContainer after injecting a dispatcher`() {
         // Given
         val store = Store.Builder<StoreState>()
-            .withInitialState(StoreState())
-            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
-            .build()
+                .withInitialState(StoreState())
+                .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+                .build()
         store.injectedDispatcher = mock()
 
 
@@ -218,18 +221,17 @@ class StoreTest {
     fun `storecontainer as dispatcher injected is used when follow up actions are processed`() {
         // Given
         val store = Store.Builder<StoreState>()
-            .withInitialState(StoreState())
-            .registerReducer<TestAction1>(
-                object : Reducer<StoreState, TestAction1>() {
-                    override fun reduce(state: StoreState, action: TestAction1): ReducerResult<StoreState> {
-                        return ReducerResult(state, TestAction2)
-                    }
-                })
-            .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
-            .build()
+                .withInitialState(StoreState())
+                .registerReducer<TestAction1>(
+                    object : Reducer<StoreState, TestAction1>() {
+                        override fun reduce(state: StoreState, action: TestAction1): ReducerResult<StoreState> {
+                            return ReducerResult(state, TestAction2)
+                        }
+                    })
+                .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
+                .build()
         val injectedDispatcher: Dispatcher = mock()
         store.injectedDispatcher = injectedDispatcher
-
 
         // When
         val wasDispatched = store.dispatch(TestAction1)
@@ -237,6 +239,64 @@ class StoreTest {
         // Then
         verify(injectedDispatcher).dispatch(TestAction2)
         assertThat(wasDispatched).isTrue()
+    }
+
+    @Test
+    fun `dispatch with middleware with action rewrite without breaking the chain`() {
+        MoReduxSettings.logMode = LogMode.FULL
+        // Given
+        var preMiddlewareHasBeenProcessed = false
+        var postMiddlewareHasBeenProcessed = false
+        val store = Store.Builder<StoreState>()
+                .withInitialState(StoreState())
+                .registerMiddleware { _, action, next ->
+                    preMiddlewareHasBeenProcessed = true
+                    next(TestAction2)
+                    postMiddlewareHasBeenProcessed = true
+                }
+                .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+                .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
+                .build()
+
+        // When
+        val wasDispatched = store.dispatch(TestAction1)
+
+        // Then
+        assertThat(wasDispatched).isTrue()
+
+        assertThat(store.state.bla).isEqualTo("Reducer 2")
+        assertThat(preMiddlewareHasBeenProcessed).isTrue()
+        assertThat(postMiddlewareHasBeenProcessed).isTrue()
+    }
+
+    @Test
+    fun `dispatch with middleware that breaks the chain`() {
+        // Given
+        val store = Store.Builder<StoreState>()
+                .withInitialState(StoreState())
+                .registerMiddleware { _, action, next ->
+                    if (action == TestAction2) {
+                        next(TestAction2)
+                    }
+                    // TestAction1 leads to breaking the execution change
+                }
+                .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+                .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
+                .build()
+
+        // When
+        val wasDispatched = store.dispatch(TestAction1)
+
+        // Then
+        assertThat(wasDispatched).isTrue()
+        assertThat(store.state.bla).isNull()
+
+        // When
+        val wasDispatched2 = store.dispatch(TestAction2)
+
+        // Then
+        assertThat(wasDispatched2).isTrue()
+        assertThat(store.state.bla).isEqualTo("Reducer 2")
     }
 
     private data class StoreState(val bla: String? = null) : State {
