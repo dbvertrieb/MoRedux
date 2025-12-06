@@ -7,6 +7,14 @@ plugins {
     signing
     alias(libs.plugins.vanniktech.publish)
     alias(libs.plugins.axion)
+
+    /*
+     * Execute the following gradle task in order find all outdated dependency:
+     * ./gradlew dependencyUpdates
+     *
+     * or just execute the dependecUpdates of the "help" tasks in Intellij's gradle toolview
+     */
+    alias(libs.plugins.ben.manes)
 }
 
 // Axion plugin settings
