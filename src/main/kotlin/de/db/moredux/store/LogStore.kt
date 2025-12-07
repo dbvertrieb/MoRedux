@@ -11,13 +11,13 @@ open class LogStore<STATE : State>(
 ) {
     val prefix = currentDispatchCount.createPrefix()
 
-    protected fun Int.createPrefix(): String = "%d - Store for %s -".format(this, clazz.simpleName)
+    protected fun Int.createPrefix(): String = "%d - Store for %s".format(this, clazz.simpleName)
 
     open fun d(message: String, logMode: MoReduxSettings.LogMode = MoReduxSettings.LogMode.FULL) {
         MoReduxLogger.d(
             clazz = this::class,
             logMode = logMode,
-            message = "$prefix $message"
+            message = "$prefix - $message"
         )
     }
 }
@@ -28,7 +28,7 @@ class LogMiddleware<STATE : State>(
     clazz: KClass<STATE>
 ) : LogStore<STATE>(currentDispatchCount, clazz) {
 
-    val middlewarePrefix = "%s Middleware #%d - ".format(
+    val middlewarePrefix = "%s Middleware #%d".format(
         currentDispatchCount.createPrefix(),
         middlewareIndex
     )
@@ -37,7 +37,7 @@ class LogMiddleware<STATE : State>(
         MoReduxLogger.d(
             clazz = this::class,
             logMode = logMode,
-            message = "$middlewarePrefix $message"
+            message = "$middlewarePrefix - $message"
         )
     }
 }
