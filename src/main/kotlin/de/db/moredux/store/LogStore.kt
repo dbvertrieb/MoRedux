@@ -28,7 +28,7 @@ class LogMiddleware<STATE : State>(
     clazz: KClass<STATE>
 ) : LogStore<STATE>(currentDispatchCount, clazz) {
 
-    val middlewarePrefix = "%s Middleware # %d.".format(
+    val middlewarePrefix = "%s Middleware #%d - ".format(
         currentDispatchCount.createPrefix(),
         middlewareIndex
     )

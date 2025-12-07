@@ -90,12 +90,10 @@ class Store<STATE : State> private constructor(
         val logStore = LogStore(currentDispatchCount, state::class)
         logStore.d("Dispatch action: %s".format(action), MoReduxSettings.LogMode.MINIMAL)
 
-        val reducer = findReducerForAction(currentDispatchCount, action) ?: return false
-
         if (middlewares.isNotEmpty()) {
             processMiddlewareNew(currentDispatchCount, 0, action)
         } else {
-            dispatchReducers(currentDispatchCount, reducer, action)
+            dispatchReducers(currentDispatchCount, action)
         }
 
         return true
@@ -142,31 +140,24 @@ class Store<STATE : State> private constructor(
             logMiddleware.d("Finish execution ...")
         } else {
             logMiddleware.d("No middleware with index: $middlewareIndex -> Proceed with reducer dispatching")
-            // the action could have been manipulated by the middleware
-            findReducerForAction(currentDispatchCount, action)?.let { reducer ->
-                dispatchReducers(
-                    currentDispatchCount,
-                    reducer,
-                    action
-                )
-            }
+            dispatchReducers(currentDispatchCount, action)
         }
     }
 
     private fun dispatchReducers(
         currentDispatchCount: Int,
-        reducer: Reducer<STATE, Action>,
         action: Action
     ) {
         val logStore = LogStore(currentDispatchCount, state::class)
-
-        // reduction
-        reducer.reduceInternal(state, action)
-                // store new state
-                .let { reducerResult ->
-                    logStore.d("Finished reduction of action %s".format(action::class.simpleName))
-                    setReducerResult(currentDispatchCount, reducerResult)
-                }
+        findReducerForAction(currentDispatchCount, action)?.let { reducer ->
+            // reduction
+            reducer.reduceInternal(state, action)
+                    // store new state
+                    .let { reducerResult ->
+                        logStore.d("Finished reduction of action %s".format(action::class.simpleName))
+                        setReducerResult(currentDispatchCount, reducerResult)
+                    }
+        }
     }
 
     /**
