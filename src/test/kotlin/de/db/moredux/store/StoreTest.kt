@@ -43,12 +43,12 @@ class StoreTest {
 
         // When
         store.teardown()
-        val wasDispatched = store.dispatch(TestAction1)
+        store.dispatch(TestAction1)
 
         // Then
-        assertThat(wasDispatched).isFalse()
         assertThat(store.wants(TestAction1)).isFalse()
         assertThat(store.wants(TestAction2)).isFalse()
+        assertThat(callbackState).isEmpty()
     }
 
     @Test
@@ -87,10 +87,9 @@ class StoreTest {
         store.addStateObserver { state -> callbackState.add(state) }
 
         // When
-        val wasDispatched = store.dispatch(TestAction1)
+        store.dispatch(TestAction1)
 
         // Then
-        assertThat(wasDispatched).isTrue()
         assertThat(testReducer1Executed).isTrue()
         assertThat(testReducer2Executed).isFalse()
         assertThat(callbackState).hasSize(1)
@@ -233,11 +232,10 @@ class StoreTest {
         store.injectedDispatcher = injectedDispatcher
 
         // When
-        val wasDispatched = store.dispatch(TestAction1)
+        store.dispatch(TestAction1)
 
         // Then
         verify(injectedDispatcher).dispatch(TestAction2)
-        assertThat(wasDispatched).isTrue()
     }
 
     @Test
@@ -258,11 +256,9 @@ class StoreTest {
                 .build()
 
         // When
-        val wasDispatched = store.dispatch(TestAction1)
+        store.dispatch(TestAction1)
 
         // Then
-        assertThat(wasDispatched).isTrue()
-
         assertThat(store.state.bla).isEqualTo("Reducer 2")
         assertThat(preMiddlewareHasBeenProcessed).isTrue()
         assertThat(postMiddlewareHasBeenProcessed).isTrue()
@@ -284,17 +280,15 @@ class StoreTest {
                 .build()
 
         // When
-        val wasDispatched = store.dispatch(TestAction1)
+        store.dispatch(TestAction1)
 
         // Then
-        assertThat(wasDispatched).isTrue()
         assertThat(store.state.bla).isNull()
 
         // When
-        val wasDispatched2 = store.dispatch(TestAction2)
+        store.dispatch(TestAction2)
 
         // Then
-        assertThat(wasDispatched2).isTrue()
         assertThat(store.state.bla).isEqualTo("Reducer 2")
     }
 

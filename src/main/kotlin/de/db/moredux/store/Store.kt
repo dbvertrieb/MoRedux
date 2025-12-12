@@ -19,6 +19,7 @@ package de.db.moredux.store
 import de.db.moredux.Action
 import de.db.moredux.State
 import de.db.moredux.middleware.Middleware
+import de.db.moredux.middleware.MiddlewareManager
 import de.db.moredux.observation.ObservationManager
 import de.db.moredux.reducer.Reducer
 import de.db.moredux.reducer.ReducerCallback
@@ -35,7 +36,7 @@ import kotlin.reflect.KClass
 class Store<STATE : State> private constructor(
     private val initialState: STATE,
     private val reducers: MutableMap<KClass<*>, Reducer<STATE, Action>>,
-    private val middlewares: MutableList<Middleware<STATE>>
+    middlewareManagerBuilder: MiddlewareManager.Companion.Builder<STATE>
 ) : Dispatcher {
     private var _state: STATE = initialState
 
@@ -46,6 +47,10 @@ class Store<STATE : State> private constructor(
     internal val observationManager = ObservationManager(state)
 
     internal var injectedDispatcher: Dispatcher? = null
+
+    private val middlewareManager: MiddlewareManager<STATE> = middlewareManagerBuilder
+            .withStore(this)
+            .build()
 
     /**
      * Provide a incremental number for logging. In case this Store has been added to a StoreContainer,
@@ -66,11 +71,10 @@ class Store<STATE : State> private constructor(
      */
     fun teardown() {
         observationManager.teardown()
+        middlewareManager.teardown()
 
         reducers.values.forEach { it.teardown() }
         reducers.clear()
-
-        middlewares.clear()
     }
 
     /**
@@ -80,23 +84,22 @@ class Store<STATE : State> private constructor(
     fun wants(action: Action): Boolean = reducers.containsKey(action::class)
 
     /**
-     * Dispatch [action] to the reducer who "wants" the action. If no reducer "wants" the [action], then nothing happens
+     * 1. Let the [action] pass through all registered middlewares in the [middlewareManager]
+     * 2. Dispatch the [action] to the reducer who "wants" the action.
+     *    If no reducer "wants" the [action], then nothing happens
      *
      * @param action the action to dispatch
-     * @return if true the [action] could be dispatched, false if no reducer wanted the passed [action]
      */
-    override fun dispatch(action: Action): Boolean {
+    override fun dispatch(action: Action) {
         val currentDispatchCount = dispatchCounter.incrementAndGet()
         val logStore = LogStore(currentDispatchCount, state::class)
         logStore.d("Dispatch action: %s".format(action), MoReduxSettings.LogMode.MINIMAL)
 
-        if (middlewares.isNotEmpty()) {
-            processMiddlewareNew(currentDispatchCount, 0, action)
+        if (middlewareManager.hasMiddleware()) {
+            middlewareManager.execute(currentDispatchCount, action)
         } else {
             dispatchReducers(currentDispatchCount, action)
         }
-
-        return true
     }
 
     private fun findReducerForAction(currentDispatchCount: Int, action: Action): Reducer<STATE, Action>? {
@@ -119,32 +122,7 @@ class Store<STATE : State> private constructor(
                }
     }
 
-    private fun processMiddlewareNew(
-        currentDispatchCount: Int,
-        middlewareIndex: Int,
-        action: Action
-    ) {
-        val logMiddleware = LogMiddleware(currentDispatchCount, middlewareIndex, state::class)
-        if (middlewareIndex < middlewares.size) {
-            logMiddleware.d("Start execution ...")
-            middlewares[middlewareIndex](
-                store = this,
-                action = action,
-                next = { nextAction ->
-                    val nextMiddlewareIndex = middlewareIndex + 1
-                    logMiddleware.d("Pass to middleware with index: $nextMiddlewareIndex")
-                    processMiddlewareNew(currentDispatchCount, nextMiddlewareIndex, nextAction)
-                    logMiddleware.d("Return from middleware with index: $nextMiddlewareIndex")
-                }
-            )
-            logMiddleware.d("Finish execution ...")
-        } else {
-            logMiddleware.d("No middleware with index: $middlewareIndex -> Proceed with reducer dispatching")
-            dispatchReducers(currentDispatchCount, action)
-        }
-    }
-
-    private fun dispatchReducers(
+    internal fun dispatchReducers(
         currentDispatchCount: Int,
         action: Action
     ) {
@@ -236,15 +214,12 @@ class Store<STATE : State> private constructor(
     class Builder<STATE : State> {
         private var initialState: STATE? = null
 
+        private val middlewareManagerBuilder = MiddlewareManager.Companion.Builder<STATE>()
+
         /**
          * Must not be private, because it is used in the inlined registerReducer method below
          */
         val reducers: Map<KClass<*>, Reducer<STATE, Action>> = mutableMapOf()
-
-        /**
-         * Must not be private, because it is used in the inlined registerMiddleware method below
-         */
-        val middlewares: List<Middleware<STATE>> = mutableListOf()
 
         /**
          * @param initialState the initialState is mandatory. Without an initial state, the Builder.build() method will
@@ -314,22 +289,14 @@ class Store<STATE : State> private constructor(
         }
 
         /**
-         * Register a middleware. Do whatever you want within the middleware, but remember to execute the callback
-         * that is passed to the middleware. If the callback is not executed, the chain of execution and the dispatching
-         * will stop.
+         * Register a middleware. Do whatever you want within the middleware, but remember to execute the 'next' lambda
+         * that is passed to the middleware. If the 'next' lambda is not executed, the chain of execution and the
+         * dispatching will stop.
          *
          * Use this e.g. to do some data loading, logging, rewriting actions or whatever
          */
         fun registerMiddleware(middleware: Middleware<STATE>): Builder<STATE> = also {
-            if (middlewares.contains(middleware)) {
-                MoReduxLogger.w(
-                    clazz = this::class,
-                    logMode = MoReduxSettings.LogMode.MINIMAL,
-                    message = "Middleware has already been registered -> Skipping registration"
-                )
-            } else {
-                (middlewares as MutableList<Middleware<STATE>>).add(middleware)
-            }
+            middlewareManagerBuilder.registerMiddleware(middleware)
         }
 
         /**
@@ -339,7 +306,7 @@ class Store<STATE : State> private constructor(
         fun build(): Store<STATE> = Store(
             initialState = checkNotNull(initialState) { "InitialState is not set" },
             reducers = reducers as MutableMap<KClass<*>, Reducer<STATE, Action>>,
-            middlewares = middlewares as MutableList<Middleware<STATE>>
+            middlewareManagerBuilder = middlewareManagerBuilder
         )
     }
 }

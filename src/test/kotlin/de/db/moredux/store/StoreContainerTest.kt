@@ -18,7 +18,14 @@ package de.db.moredux.store
 
 import com.google.common.truth.Truth.assertThat
 import de.db.moredux.Action
-import de.db.moredux.State
+import de.db.moredux.preferences.PreferencesAction
+import de.db.moredux.preferences.PreferencesState
+import de.db.moredux.preferences.ReducerSetDarkMode
+import de.db.moredux.preferences.ReducerSetLightMode
+import de.db.moredux.preferences.ReducerSetUsername
+import de.db.moredux.todo.ReducerAddTodo
+import de.db.moredux.todo.TodoAction
+import de.db.moredux.todo.TodoState
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -30,67 +37,67 @@ class StoreContainerTest {
     fun `test wants`() {
         // Given
         val storeContainer = StoreContainer.Builder()
-            .addStore(createStore1())
-            .build()
+                .addStore(createStoreTodo())
+                .build()
 
         // When & Then
-        assertThat(storeContainer.wants(TestAction1)).isTrue()
-        assertThat(storeContainer.wants(TestAction2)).isFalse()
+        assertThat(storeContainer.wants(TodoAction.Add("Bla"))).isTrue()
+        assertThat(storeContainer.wants(UnknownAction)).isFalse()
     }
 
     @Test
-    fun `no stores registered in storecontainer - no dispatch possible`() {
+    fun `no stores registered in storeContainer - no dispatch possible`() {
         // Given
         val storeContainer = StoreContainer.Builder().build()
 
         // When
-        val wasDispatched = storeContainer.dispatch(mock())
+        storeContainer.dispatch(mock())
 
         // Then
-        assertThat(wasDispatched).isFalse()
+        assertThat(storeContainer.currentDispatchCount).isEqualTo(0)
     }
 
     @Test
     fun `stores registered but no one wants the action - no dispatch possible`() {
         // Given
         val storeContainer = StoreContainer.Builder()
-            .addStore(createStore1())
-            .addStore(createStore2())
-            .build()
+                .addStore(createStoreTodo())
+                .addStore(createStorePreferences())
+                .build()
 
         // When
-        val wasDispatched = storeContainer.dispatch(TestAction3)
+        storeContainer.dispatch(UnknownAction)
 
         // Then
-        assertThat(wasDispatched).isFalse()
+        assertThat(storeContainer.currentDispatchCount).isEqualTo(0)
     }
 
     @Test
     fun `stores registered and one store wants the action - dispatch successful`() {
         // Given
         val storeContainer = StoreContainer.Builder()
-            .addStore(createStore1())
-            .addStore(createStore2())
-            .build()
+                .addStore(createStoreTodo())
+                .addStore(createStorePreferences())
+                .build()
 
         // When
-        val wasDispatched = storeContainer.dispatch(TestAction1)
+        storeContainer.dispatch(PreferencesAction.SetLightMode)
 
         // Then
-        assertThat(wasDispatched).isTrue()
+        assertThat(storeContainer.currentDispatchCount).isEqualTo(1)
     }
 
     @Test
     fun `Builder - store has already been added to the builder - addStore is skipped`() {
         // Given
-        val store1 = createStore1()
-        val store2 = createStore2()
+        val storeTodo = createStoreTodo()
+        val storePreferences = createStorePreferences()
 
         // When
         val builder = StoreContainer.Builder()
-            .addStore(store1)
-            .addStore(store1)
-            .addStore(store2)
+                .addStore(storeTodo)
+                .addStore(storeTodo)
+                .addStore(storePreferences)
 
         // Then
         assertThat(builder.stores).hasSize(2)
@@ -99,59 +106,63 @@ class StoreContainerTest {
     @Test
     fun `teardown calls teardown on each Store`() {
         // Given
-        val store1 = mock<Store<StoreState1>>()
-        val store2 = mock<Store<StoreState2>>()
+        val storeTodo = mock<Store<TodoState>>()
+        val storePreferences = mock<Store<PreferencesState>>()
         val storeContainer = StoreContainer.Builder()
-            .addStore(store1)
-            .addStore(store2)
-            .build()
+                .addStore(storeTodo)
+                .addStore(storePreferences)
+                .build()
 
         // When
         storeContainer.teardown()
 
         // Then
-        verify(store1).teardown()
-        verify(store2).teardown()
+        verify(storeTodo).teardown()
+        verify(storePreferences).teardown()
     }
 
     @Test
-    fun `DispatchCounter should be incremented twice on one storeContainer dispatch`() {
+    fun `DispatchCounter should be incremented for each succesfull dispatch`() {
         // Given
         val storeContainer = StoreContainer.Builder()
-            .addStore(createStore1())
-            .build()
+                .addStore(createStoreTodo())
+                .addStore(createStorePreferences())
+                .build()
 
         // Pre Then
         assertThat(storeContainer.currentDispatchCount).isEqualTo(0)
 
-        // When
-        storeContainer.dispatch(TestAction1)
+        // When & Then
+        storeContainer.dispatch(PreferencesAction.SetDarkMode)
+        assertThat(storeContainer.currentDispatchCount).isEqualTo(1)
 
-        // Then
+        // When & Then
+        storeContainer.dispatch(TodoAction.Add("Deep-fry chocolate bar"))
+        assertThat(storeContainer.currentDispatchCount).isEqualTo(2)
+
+        // When & Then
+        storeContainer.dispatch(UnknownAction)
         assertThat(storeContainer.currentDispatchCount).isEqualTo(2)
     }
 
-    private fun createStore1() =
-        Store.Builder<StoreState1>()
-            .withInitialState(StoreState1())
-            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
-            .build()
+    private fun createStoreTodo() =
+        Store.Builder<TodoState>()
+                .withInitialState(TodoState.INITIAL)
+                .registerReducer<TodoAction.Add>(ReducerAddTodo())
+                .registerReducerToState<TodoAction.SetDone> { state, action ->
+                    state.copy(
+                        done = state.done.toMutableList().also { it[action.index] = true }
+                    )
+                }
+                .build()
 
-    private fun createStore2() =
-        Store.Builder<StoreState2>()
-            .withInitialState(StoreState2())
-            .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
-            .build()
+    private fun createStorePreferences() =
+        Store.Builder<PreferencesState>()
+                .withInitialState(PreferencesState.INITIAL)
+                .registerReducer<PreferencesAction.SetLightMode>(ReducerSetLightMode())
+                .registerReducer<PreferencesAction.SetDarkMode>(ReducerSetDarkMode())
+                .registerReducer<PreferencesAction.SetUsername>(ReducerSetUsername())
+                .build()
 
-    private data class StoreState1(val bla: String? = null) : State {
-        override fun clone(): State = this.copy()
-    }
-
-    private data class StoreState2(val bla: String? = null) : State {
-        override fun clone(): State = this.copy()
-    }
-
-    private data object TestAction1 : Action
-    private data object TestAction2 : Action
-    private data object TestAction3 : Action
+    private data object UnknownAction : Action
 }

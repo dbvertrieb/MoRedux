@@ -14,4 +14,12 @@ data class TodoState(
     val counter: Int
 ) : State {
     override fun clone(): State = copy()
+
+    companion object {
+        val INITIAL = TodoState(
+            todos = emptyList(),
+            done = emptyList(),
+            counter = 0
+        )
+    }
 }
