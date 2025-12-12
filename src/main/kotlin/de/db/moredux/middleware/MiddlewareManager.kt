@@ -6,17 +6,18 @@ import de.db.moredux.settings.MoReduxLogger
 import de.db.moredux.settings.MoReduxSettings
 import de.db.moredux.store.Dispatcher
 import de.db.moredux.store.LogMiddleware
-import de.db.moredux.store.Store
+import kotlin.reflect.KClass
 
 internal class MiddlewareManager<STATE : State>(
-    private val store: Store<STATE>,
+    private val stateClazz: KClass<out STATE>,
     private val middlewares: MutableList<Middleware<STATE>>
 ) {
     internal fun teardown() {
         middlewares.clear()
     }
 
-    internal fun hasMiddleware() = middlewares.isNotEmpty()
+    internal fun hasMiddleware() =
+        middlewares.isNotEmpty()
 
     internal fun execute(
         dispatcher: Dispatcher,
@@ -36,7 +37,7 @@ internal class MiddlewareManager<STATE : State>(
         middlewareIndex: Int,
         startReduction: (Action) -> Unit
     ) {
-        val logMiddleware = LogMiddleware(currentDispatchCount, middlewareIndex, store.state::class)
+        val logMiddleware = LogMiddleware(currentDispatchCount, middlewareIndex, stateClazz)
         if (middlewareIndex < middlewares.size) {
             logMiddleware.d("Start execution ...")
             middlewares[middlewareIndex](
@@ -67,11 +68,11 @@ internal class MiddlewareManager<STATE : State>(
     companion object {
         class Builder<STATE : State>() {
 
-            private lateinit var store: Store<STATE>
+            private lateinit var stateClazz: KClass<out STATE>
 
             private val middlewares = mutableListOf<Middleware<STATE>>()
 
-            internal fun withStore(store: Store<STATE>): Builder<STATE> = also { this.store = store }
+            internal fun withState(stateClazz: KClass<out STATE>): Builder<STATE> = also { this.stateClazz = stateClazz }
 
             /**
              * Register a middleware. Do whatever you want within the middleware, but remember to execute the callback
@@ -92,7 +93,7 @@ internal class MiddlewareManager<STATE : State>(
                 }
             }
 
-            fun build(): MiddlewareManager<STATE> = MiddlewareManager(store, middlewares)
+            fun build(): MiddlewareManager<STATE> = MiddlewareManager(stateClazz, middlewares)
         }
     }
 }

@@ -49,7 +49,7 @@ class Store<STATE : State> private constructor(
     internal var injectedDispatcher: Dispatcher? = null
 
     private val middlewareManager: MiddlewareManager<STATE> = middlewareManagerBuilder
-            .withStore(this)
+            .withState(_state::class)
             .build()
 
     /**
