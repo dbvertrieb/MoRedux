@@ -5,6 +5,8 @@ import com.vanniktech.maven.publish.SonatypeHost
 plugins {
     kotlin("jvm") version libs.versions.kotlin
     signing
+    `java-test-fixtures`
+
     alias(libs.plugins.vanniktech.publish)
     alias(libs.plugins.axion)
 
@@ -33,6 +35,7 @@ repositories {
 dependencies {
     implementation(libs.kotlinx.coroutines)
 
+    testImplementation(testFixtures(project))
     testImplementation(libs.kotlin.test)
     testImplementation(libs.junit.jupiter.params)
     testImplementation(libs.google.truth)

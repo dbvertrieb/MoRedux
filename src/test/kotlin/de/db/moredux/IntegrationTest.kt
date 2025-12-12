@@ -17,50 +17,17 @@
 package de.db.moredux
 
 import com.google.common.truth.Truth.assertThat
-import de.db.moredux.IntegrationTest.TodoAction.Add
-import de.db.moredux.IntegrationTest.TodoAction.SetDone
 import de.db.moredux.observation.addSelectorStateFlow
-import de.db.moredux.reducer.Reducer
-import de.db.moredux.reducer.ReducerResult
 import de.db.moredux.settings.MoReduxSettings
 import de.db.moredux.store.Store
+import de.db.moredux.todo.ReducerAddTodo
+import de.db.moredux.todo.TodoAction.Add
+import de.db.moredux.todo.TodoAction.IncrementCounter
+import de.db.moredux.todo.TodoAction.SetDone
+import de.db.moredux.todo.TodoState
 import org.junit.jupiter.api.Test
 
 class IntegrationTest {
-
-    // Define the state
-    data class TodoState(
-        val todos: List<String>,
-        val done: List<Boolean>,
-        val middlewareCounter: Int
-    ) : State {
-        override fun clone(): State = copy()
-    }
-
-    // Define the possible actions
-    sealed class TodoAction : Action {
-        data class Add(val todo: String) : TodoAction()
-        data class SetDone(val index: Int) : TodoAction()
-        data object IncrementMiddlewareCounter : TodoAction()
-    }
-
-    // Example of a reducer implemented as class extending teh Reducer interface
-    class ReducerAddTodo : Reducer<TodoState, Add>() {
-        override fun reduce(state: TodoState, action: Add): ReducerResult<TodoState> {
-            val todos = state.todos.toMutableList()
-            todos.add(action.todo)
-
-            val done = state.done.toMutableList()
-            done.add(false)
-
-            return ReducerResult(
-                state.copy(
-                    todos = todos.toList(),
-                    done = done.toList()
-                )
-            )
-        }
-    }
 
     @Test
     fun `test with none breaking middlewares`() {
@@ -71,10 +38,10 @@ class IntegrationTest {
 
         // Build the store and register all reducers
         val store = Store.Builder<TodoState>()
-                .withInitialState(TodoState(todos = emptyList(), done = emptyList(), middlewareCounter = 0))
+                .withInitialState(TodoState(todos = emptyList(), done = emptyList(), counter = 0))
                 .registerReducer<Add>(ReducerAddTodo())
-                .registerReducerToState<TodoAction.IncrementMiddlewareCounter> { state, _ ->
-                    state.copy(middlewareCounter = state.middlewareCounter + 1)
+                .registerReducerToState<IncrementCounter> { state, _ ->
+                    state.copy(counter = state.counter + 1)
                 }
                 .registerReducerToState<SetDone> { state, action ->
                     // Example of a reducer implemented as function that simply returns a new state
@@ -85,8 +52,8 @@ class IntegrationTest {
                 }
                 .registerMiddleware { store, action, next ->
                     // Make sure the same action is not processed twice - infinite recursion guard
-                    if (action != TodoAction.IncrementMiddlewareCounter) {
-                        store.dispatch(TodoAction.IncrementMiddlewareCounter)
+                    if (action != IncrementCounter) {
+                        store.dispatch(IncrementCounter)
                     }
                     next(action)
                 }
@@ -104,8 +71,7 @@ class IntegrationTest {
 
         // Then
         assertThat(unfinishedTodos.value).isEqualTo(listOf("Cook dinner"))
-        assertThat(store.state.middlewareCounter).isEqualTo(3)
-//        println(log)
+        assertThat(store.state.counter).isEqualTo(3)
     }
 
     @Test
@@ -117,7 +83,7 @@ class IntegrationTest {
 
         // Build the store and register all reducers
         val store = Store.Builder<TodoState>()
-                .withInitialState(TodoState(todos = emptyList(), done = emptyList(), middlewareCounter = 0))
+                .withInitialState(TodoState(todos = emptyList(), done = emptyList(), counter = 0))
                 .registerReducer<Add>(ReducerAddTodo())
                 .registerReducerToState<SetDone> { state, action ->
                     // Example of a reducer implemented as function that simply returns a new state
@@ -130,7 +96,7 @@ class IntegrationTest {
                     /* do nothing, do not call "next" callback */
                 }
                 .registerMiddleware { store, action, next ->
-                    store.dispatch(TodoAction.IncrementMiddlewareCounter)
+                    store.dispatch(IncrementCounter)
                     next(action)
                 }
                 .build()
@@ -148,7 +114,6 @@ class IntegrationTest {
 
         // Then
         assertThat(unfinishedTodos.value).isEmpty()
-        assertThat(store.state.middlewareCounter).isEqualTo(0)
-//        println(log)
+        assertThat(store.state.counter).isEqualTo(0)
     }
 }
