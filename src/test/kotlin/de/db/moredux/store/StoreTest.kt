@@ -246,7 +246,7 @@ class StoreTest {
         var postMiddlewareHasBeenProcessed = false
         val store = Store.Builder<StoreState>()
                 .withInitialState(StoreState())
-                .registerMiddleware { _, _, next ->
+                .registerMiddleware { _, _, _, next ->
                     preMiddlewareHasBeenProcessed = true
                     next(TestAction2)
                     postMiddlewareHasBeenProcessed = true
@@ -269,7 +269,7 @@ class StoreTest {
         // Given
         val store = Store.Builder<StoreState>()
                 .withInitialState(StoreState())
-                .registerMiddleware { _, action, next ->
+                .registerMiddleware { _, _, action, next ->
                     if (action == TestAction2) {
                         next(TestAction2)
                     }

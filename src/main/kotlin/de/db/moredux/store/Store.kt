@@ -96,7 +96,7 @@ class Store<STATE : State> private constructor(
         logStore.d("Dispatch action: %s".format(action), MoReduxSettings.LogMode.MINIMAL)
 
         if (middlewareManager.hasMiddleware()) {
-            middlewareManager.execute(currentDispatchCount, action)
+            middlewareManager.execute(injectedDispatcher ?: this, state, action, currentDispatchCount)
         } else {
             dispatchReducers(currentDispatchCount, action)
         }

@@ -50,10 +50,10 @@ class IntegrationTest {
 
                     state.copy(done = done.toList())
                 }
-                .registerMiddleware { store, action, next ->
+                .registerMiddleware { dispatcher, state, action, next ->
                     // Make sure the same action is not processed twice - infinite recursion guard
                     if (action != IncrementCounter) {
-                        store.dispatch(IncrementCounter)
+                        dispatcher.dispatch(IncrementCounter)
                     }
                     next(action)
                 }
@@ -92,11 +92,11 @@ class IntegrationTest {
 
                     state.copy(done = done.toList())
                 }
-                .registerMiddleware { _, _, _ ->
+                .registerMiddleware { _, _, _, _ ->
                     /* do nothing, do not call "next" callback */
                 }
-                .registerMiddleware { store, action, next ->
-                    store.dispatch(IncrementCounter)
+                .registerMiddleware { dispatcher, _, action, next ->
+                    dispatcher.dispatch(IncrementCounter)
                     next(action)
                 }
                 .build()

@@ -4,6 +4,7 @@ import de.db.moredux.Action
 import de.db.moredux.State
 import de.db.moredux.settings.MoReduxLogger
 import de.db.moredux.settings.MoReduxSettings
+import de.db.moredux.store.Dispatcher
 import de.db.moredux.store.LogMiddleware
 import de.db.moredux.store.Store
 
@@ -18,27 +19,32 @@ internal class MiddlewareManager<STATE : State>(
     internal fun hasMiddleware() = middlewares.isNotEmpty()
 
     internal fun execute(
-        currentDispatchCount: Int,
-        action: Action
+        dispatcher: Dispatcher,
+        state: STATE,
+        action: Action,
+        currentDispatchCount: Int
     ) {
-        executeInternal(currentDispatchCount, 0, action)
+        executeInternal(dispatcher, state, action, currentDispatchCount, 0)
     }
 
     private fun executeInternal(
+        dispatcher: Dispatcher,
+        state: STATE,
+        action: Action,
         currentDispatchCount: Int,
-        middlewareIndex: Int,
-        action: Action
+        middlewareIndex: Int
     ) {
         val logMiddleware = LogMiddleware(currentDispatchCount, middlewareIndex, store.state::class)
         if (middlewareIndex < middlewares.size) {
             logMiddleware.d("Start execution ...")
             middlewares[middlewareIndex](
-                store = store,
+                dispatcher = dispatcher,
+                state = state,
                 action = action,
                 next = { nextAction ->
                     val nextMiddlewareIndex = middlewareIndex + 1
                     logMiddleware.d("Pass to middleware with index: $nextMiddlewareIndex")
-                    executeInternal(currentDispatchCount, nextMiddlewareIndex, nextAction)
+                    executeInternal(dispatcher, state, nextAction, currentDispatchCount, nextMiddlewareIndex)
                     logMiddleware.d("Return from middleware with index: $nextMiddlewareIndex")
                 }
             )
