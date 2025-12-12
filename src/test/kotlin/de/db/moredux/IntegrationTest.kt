@@ -50,7 +50,7 @@ class IntegrationTest {
 
                     state.copy(done = done.toList())
                 }
-                .registerMiddleware { dispatcher, state, action, next ->
+                .registerMiddleware { dispatcher, _, action, next ->
                     // Make sure the same action is not processed twice - infinite recursion guard
                     if (action != IncrementCounter) {
                         dispatcher.dispatch(IncrementCounter)

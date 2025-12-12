@@ -79,7 +79,7 @@ internal class MiddlewareManager<STATE : State>(
                         message = "Middleware has already been registered -> Skipping registration"
                     )
                 } else {
-                    (middlewares as MutableList<Middleware<STATE>>).add(middleware)
+                    middlewares.add(middleware)
                 }
             }
 
