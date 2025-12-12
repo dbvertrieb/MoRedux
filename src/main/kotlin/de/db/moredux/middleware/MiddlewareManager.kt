@@ -22,9 +22,10 @@ internal class MiddlewareManager<STATE : State>(
         dispatcher: Dispatcher,
         state: STATE,
         action: Action,
-        currentDispatchCount: Int
+        currentDispatchCount: Int,
+        startReduction: (Action) -> Unit
     ) {
-        executeInternal(dispatcher, state, action, currentDispatchCount, 0)
+        executeInternal(dispatcher, state, action, currentDispatchCount, 0, startReduction)
     }
 
     private fun executeInternal(
@@ -32,7 +33,8 @@ internal class MiddlewareManager<STATE : State>(
         state: STATE,
         action: Action,
         currentDispatchCount: Int,
-        middlewareIndex: Int
+        middlewareIndex: Int,
+        startReduction: (Action) -> Unit
     ) {
         val logMiddleware = LogMiddleware(currentDispatchCount, middlewareIndex, store.state::class)
         if (middlewareIndex < middlewares.size) {
@@ -44,14 +46,21 @@ internal class MiddlewareManager<STATE : State>(
                 next = { nextAction ->
                     val nextMiddlewareIndex = middlewareIndex + 1
                     logMiddleware.d("Pass to middleware with index: $nextMiddlewareIndex")
-                    executeInternal(dispatcher, state, nextAction, currentDispatchCount, nextMiddlewareIndex)
+                    executeInternal(
+                        dispatcher = dispatcher,
+                        state = state,
+                        action = nextAction,
+                        currentDispatchCount = currentDispatchCount,
+                        middlewareIndex = nextMiddlewareIndex,
+                        startReduction = startReduction
+                    )
                     logMiddleware.d("Return from middleware with index: $nextMiddlewareIndex")
                 }
             )
             logMiddleware.d("Finish execution ...")
         } else {
             logMiddleware.d("No middleware with index: $middlewareIndex -> Proceed with reducer dispatching")
-            store.dispatchReducers(currentDispatchCount, action)
+            startReduction(action)
         }
     }
 
