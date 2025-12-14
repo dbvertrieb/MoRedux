@@ -52,7 +52,7 @@ class StoreTest {
     }
 
     @Test
-    fun `test wants`() {
+    fun `test wants only with reducers`() {
         // Given
         val store = Store.Builder<StoreState>()
                 .withInitialState(StoreState())
@@ -64,6 +64,22 @@ class StoreTest {
         assertThat(store.wants(TestAction1)).isTrue()
         assertThat(store.wants(TestAction2)).isTrue()
         assertThat(store.wants(TestAction3)).isFalse()
+    }
+
+    @Test
+    fun `test wants only with middlewares`() {
+        // Given
+        val store = Store.Builder<StoreState>()
+                .withInitialState(StoreState())
+                .registerMiddleware { _, _, _, _ ->
+                    println("Dummy")
+                }
+                .build()
+
+        // When & Then
+        assertThat(store.wants(TestAction1)).isTrue()
+        assertThat(store.wants(TestAction2)).isTrue()
+        assertThat(store.wants(TestAction3)).isTrue()
     }
 
     @Test

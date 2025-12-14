@@ -78,10 +78,12 @@ class Store<STATE : State> private constructor(
     }
 
     /**
-     * @param action the action to check whether any reducer "wants" it
-     * @return if true one of the inherited reducers can process the passed [action]
+     * @param action the action to check whether any reducer or middleware "wants" it
+     * @return if true one of the inherited reducers or middlewares can process the passed [action]
      */
-    fun wants(action: Action): Boolean = reducers.containsKey(action::class)
+    fun wants(action: Action): Boolean =
+        reducers.containsKey(action::class) ||
+        middlewareManager.wants(action)
 
     /**
      * 1. Let the [action] pass through all registered middlewares in the [middlewareManager]
@@ -303,6 +305,29 @@ class Store<STATE : State> private constructor(
          */
         fun registerMiddleware(middleware: Middleware<STATE>): Builder<STATE> = also {
             middlewareManagerBuilder.registerMiddleware(middleware)
+        }
+
+        /**
+         * Register a middleware that is executed just when [ACTION] is dispatched
+         *
+         * You can register as many middleware for [ACTION] as you like to
+         */
+        inline fun <reified ACTION : Action> registerMiddlewareForAction(
+            middleware: Middleware<STATE>
+        ): Builder<STATE> = also {
+            registerMiddlewareForAction(ACTION::class, middleware)
+        }
+
+        /**
+         * Register a middleware that is executed just when an action of type [actionClazz] is dispatched
+         *
+         * You can register as many middleware of type [actionClazz] as you like to
+         */
+        fun registerMiddlewareForAction(
+            actionClazz: KClass<*>,
+            middleware: Middleware<STATE>
+        ): Builder<STATE> = also {
+            middlewareManagerBuilder.registerMiddleware(actionClazz, middleware)
         }
 
         /**
