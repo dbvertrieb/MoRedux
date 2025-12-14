@@ -100,7 +100,7 @@ class MiddlewareManagerTest {
                     }
                     next(newAction)
                 }
-                .registerMiddlewareForAction(PreferencesAction.SetLightMode::class) { _, _, action, next ->
+                .registerMiddlewareForAction(PreferencesAction.SetLightMode::class) { _, _, _, next ->
                     next(PreferencesAction.SetDarkMode)
                 }
                 .build()
