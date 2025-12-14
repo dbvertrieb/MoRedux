@@ -19,6 +19,7 @@ package de.db.moredux.store
 import de.db.moredux.Action
 import de.db.moredux.State
 import de.db.moredux.middleware.Middleware
+import de.db.moredux.middleware.MiddlewareForAction
 import de.db.moredux.middleware.MiddlewareManager
 import de.db.moredux.observation.ObservationManager
 import de.db.moredux.reducer.Reducer
@@ -313,7 +314,7 @@ class Store<STATE : State> private constructor(
          * You can register as many middleware for [ACTION] as you like to
          */
         inline fun <reified ACTION : Action> registerMiddlewareForAction(
-            middleware: Middleware<STATE>
+            middleware: MiddlewareForAction<STATE, ACTION>
         ): Builder<STATE> = also {
             registerMiddlewareForAction(ACTION::class, middleware)
         }
@@ -323,11 +324,11 @@ class Store<STATE : State> private constructor(
          *
          * You can register as many middleware of type [actionClazz] as you like to
          */
-        fun registerMiddlewareForAction(
+        fun <ACTION : Action> registerMiddlewareForAction(
             actionClazz: KClass<*>,
-            middleware: Middleware<STATE>
+            middleware: MiddlewareForAction<STATE, ACTION>
         ): Builder<STATE> = also {
-            middlewareManagerBuilder.registerMiddleware(actionClazz, middleware)
+            middlewareManagerBuilder.registerMiddlewareForAction(actionClazz, middleware)
         }
 
         /**

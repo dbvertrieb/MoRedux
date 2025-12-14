@@ -7,6 +7,7 @@ import de.db.moredux.preferences.PreferencesState
 import de.db.moredux.preferences.ReducerSetDarkMode
 import de.db.moredux.preferences.ReducerSetLightMode
 import de.db.moredux.preferences.ReducerSetUsername
+import de.db.moredux.store.Dispatcher
 import de.db.moredux.store.Store
 import de.db.moredux.todo.TodoAction
 import org.junit.jupiter.api.Test
@@ -134,7 +135,7 @@ class MiddlewareManagerTest {
         // Given
         val middlewareManager = MiddlewareManager.Companion.Builder<PreferencesState>()
                 .withState(PreferencesState::class)
-                .registerMiddleware(PreferencesAction.SetLightMode::class) { _, _, _, _ ->
+                .registerMiddlewareForAction<PreferencesAction.SetLightMode> { _, _, _, _ ->
                     println("Dummy")
                 }
                 .build()
@@ -145,4 +146,39 @@ class MiddlewareManagerTest {
         assertThat(middlewareManager.wants(TodoAction.IncrementCounter)).isFalse()
         assertThat(middlewareManager.wants(object : Action {})).isFalse()
     }
+
+    @Test
+    fun `test with multiple middleware alternating between general and for a single action`() {
+        // Given
+        val path = mutableListOf<String>()
+        val store = Store.Builder<PreferencesState>()
+                .withInitialState(PreferencesState.INITIAL)
+                .registerReducer<PreferencesAction.SetLightMode>(ReducerSetLightMode())
+                .registerMiddlewareForAction<PreferencesAction.SetUsername> { _, _, action, next ->
+                    path.add("SetUsername 1 ${action.username}")
+                    next(action)
+                }
+                .registerMiddleware { _, _, action, next ->
+                    path.add("General 1")
+                    next(action)
+                }
+                .registerMiddlewareForAction<PreferencesAction.SetUsername> { _, _, action, next ->
+                    path.add("SetUsername 2 ${action.username}")
+                    next(action)
+                }
+                .registerMiddleware { _, _, action, next ->
+                    path.add("General 2")
+                    next(action)
+                }
+                .build()
+
+        // When
+        store.dispatch(PreferencesAction.SetUsername("Henrik"))
+
+        // Then
+        assertThat(store.state.lightMode).isTrue()
+        val expected = mutableListOf("SetUsername 1 Henrik", "General 1", "SetUsername 2 Henrik", "General 2")
+        assertThat(path).isEqualTo(expected)
+    }
+
 }

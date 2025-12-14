@@ -43,13 +43,13 @@ internal class MiddlewareManager<STATE : State>(
         executeInternal(dispatcher, state, action, currentDispatchCount, 0, startReduction)
     }
 
-    private fun executeInternal(
+    private fun <ACTION : Action> executeInternal(
         dispatcher: Dispatcher,
         state: STATE,
-        action: Action,
+        action: ACTION,
         currentDispatchCount: Int,
         middlewareIndex: Int,
-        startReduction: (Action) -> Unit
+        startReduction: (ACTION) -> Unit
     ) {
         val logMiddleware = LogMiddleware(currentDispatchCount, middlewareIndex, stateClazz)
         val container = middlewares.getOrNull(middlewareIndex)
@@ -79,9 +79,12 @@ internal class MiddlewareManager<STATE : State>(
                 logMiddleware.d("Return from middleware with index: $nextMiddlewareIndex")
             }
 
-            else -> {
-                logMiddleware.d("Start execution ...")
-                middlewares[middlewareIndex].middleware(
+            container.actionClazz == action::class -> {
+                logMiddleware.d("Start execution for action: ${container.actionClazz} ...")
+
+                @Suppress("UNCHECKED_CAST")
+                val containerMiddleware = middlewares[middlewareIndex].middleware as MiddlewareForAction<STATE, ACTION>
+                containerMiddleware(
                     dispatcher = dispatcher,
                     state = state,
                     action = action,
@@ -99,13 +102,38 @@ internal class MiddlewareManager<STATE : State>(
                         logMiddleware.d("Return from middleware with index: $nextMiddlewareIndex")
                     }
                 )
+                logMiddleware.d("Finish execution for action: ${container.actionClazz} ...")
+            }
+
+            else -> {
+                logMiddleware.d("Start execution ...")
+
+                val containerMiddleware = middlewares[middlewareIndex].middleware as Middleware<STATE>
+                containerMiddleware(
+                    dispatcher = dispatcher,
+                    state = state,
+                    action = action,
+                    next = { nextAction ->
+                        val nextMiddlewareIndex = middlewareIndex + 1
+                        logMiddleware.d("Pass to middleware with index: $nextMiddlewareIndex")
+                        executeInternal(
+                            dispatcher = dispatcher,
+                            state = state,
+                            action = nextAction,
+                            currentDispatchCount = currentDispatchCount,
+                            middlewareIndex = nextMiddlewareIndex,
+                            startReduction = startReduction as (Action) -> Unit
+                        )
+                        logMiddleware.d("Return from middleware with index: $nextMiddlewareIndex")
+                    }
+                )
                 logMiddleware.d("Finish execution ...")
             }
         }
     }
 
     internal data class Container<STATE : State>(
-        val middleware: Middleware<STATE>,
+        val middleware: MiddlewareParent<STATE>,
         val actionClazz: KClass<*>?
     )
 
@@ -120,7 +148,7 @@ internal class MiddlewareManager<STATE : State>(
                 also { this.stateClazz = stateClazz }
 
             /**
-             * Register a middlewarefor all actions
+             * Register a middleware for all actions
              */
             internal fun registerMiddleware(middleware: Middleware<STATE>): Builder<STATE> = also {
                 if (!doesMiddlewareExist(middleware)) {
@@ -131,16 +159,25 @@ internal class MiddlewareManager<STATE : State>(
             /**
              * Register a middleware for exactly one action
              */
-            internal fun registerMiddleware(
+            internal fun <ACTION : Action> registerMiddlewareForAction(
                 actionClazz: KClass<*>,
-                middleware: Middleware<STATE>
+                middleware: MiddlewareForAction<STATE, ACTION>
             ): Builder<STATE> = also {
                 if (!doesMiddlewareExist(middleware)) {
                     middlewares.add(Container(middleware, actionClazz))
                 }
             }
 
-            private fun doesMiddlewareExist(middleware: Middleware<STATE>): Boolean =
+            /**
+             * Register a middleware for exactly one action
+             */
+            inline fun <reified ACTION : Action> registerMiddlewareForAction(
+                middleware: MiddlewareForAction<STATE, ACTION>
+            ): Builder<STATE> = also {
+                registerMiddlewareForAction(ACTION::class, middleware)
+            }
+
+            private fun doesMiddlewareExist(middleware: MiddlewareParent<STATE>): Boolean =
                 if (middlewares.any { it.middleware == middleware }) {
                     MoReduxLogger.w(
                         clazz = this::class,

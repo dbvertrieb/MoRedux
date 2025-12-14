@@ -4,7 +4,7 @@ import de.db.moredux.Action
 import de.db.moredux.State
 import de.db.moredux.store.Dispatcher
 
-fun interface Middleware<STATE : State> : MiddlewareParent<STATE> {
+fun interface MiddlewareForAction<STATE : State, ACTION : Action> : MiddlewareParent<STATE> {
     /**
      * Do whatever you want within the middleware, but remember to execute the callback
      * that is passed to the middleware. If the callback is not executed, the chain of execution and the dispatching
@@ -23,5 +23,5 @@ fun interface Middleware<STATE : State> : MiddlewareParent<STATE> {
      * If you want proper dispatch counters, or you want to dispatch actions via the stores
      * injected dispatcher, use the passed [dispatcher].
      */
-    operator fun invoke(dispatcher: Dispatcher, state: STATE, action: Action, next: (Action) -> Any)
+    operator fun invoke(dispatcher: Dispatcher, state: STATE, action: ACTION, next: (ACTION) -> Any)
 }
