@@ -50,11 +50,11 @@ class Store<STATE : State> private constructor(
     internal var injectedDispatcher: Dispatcher? = null
 
     private val middlewareManager: MiddlewareManager<STATE> = middlewareManagerBuilder
-            .withState(_state::class)
-            .build()
+        .withState(_state::class)
+        .build()
 
     /**
-     * Provide a incremental number for logging. In case this Store has been added to a StoreContainer,
+     * Provide an incremental number for logging. In case this Store has been added to a StoreContainer,
      * this dispatchCounter holds an injected DispatchCounter instance of the StoreContainer
      */
     internal var dispatchCounter: DispatchCounter = DispatchCounter()
@@ -84,7 +84,7 @@ class Store<STATE : State> private constructor(
      */
     fun wants(action: Action): Boolean =
         reducers.containsKey(action::class) ||
-        middlewareManager.wants(action)
+                middlewareManager.wants(action)
 
     /**
      * 1. Let the [action] pass through all registered middlewares in the [middlewareManager]
@@ -114,21 +114,21 @@ class Store<STATE : State> private constructor(
     private fun findReducerForAction(currentDispatchCount: Int, action: Action): Reducer<STATE, Action>? {
         val logStore = LogStore(currentDispatchCount, state::class)
         return reducers[action::class]
-                       ?.takeIf { reducer -> reducer.wants(action) }
-                       ?.also {
-                           logStore.d(
-                               "Found reducer %s for action %s.".format(
-                                   it::class.simpleName,
-                                   action::class.simpleName
-                               )
-                           )
-                       }
-               ?: run {
-                   logStore.d(
-                       "Could not find reducer for action %s -> Quit dispatching".format(action::class.simpleName)
-                   )
-                   return null
-               }
+            ?.takeIf { reducer -> reducer.wants(action) }
+            ?.also {
+                logStore.d(
+                    "Found reducer %s for action %s.".format(
+                        it::class.simpleName,
+                        action::class.simpleName
+                    )
+                )
+            }
+            ?: run {
+                logStore.d(
+                    "Could not find reducer for action %s -> Quit dispatching".format(action::class.simpleName)
+                )
+                return null
+            }
     }
 
     internal fun dispatchReducers(
@@ -139,11 +139,11 @@ class Store<STATE : State> private constructor(
         findReducerForAction(currentDispatchCount, action)?.let { reducer ->
             // reduction
             reducer.reduceInternal(state, action)
-                    // store new state
-                    .let { reducerResult ->
-                        logStore.d("Finished reduction of action %s".format(action::class.simpleName))
-                        setReducerResult(currentDispatchCount, reducerResult)
-                    }
+                // store new state
+                .let { reducerResult ->
+                    logStore.d("Finished reduction of action %s".format(action::class.simpleName))
+                    setReducerResult(currentDispatchCount, reducerResult)
+                }
         }
     }
 
@@ -209,14 +209,14 @@ class Store<STATE : State> private constructor(
         val logStore = LogStore(currentDispatchCount, state::class)
 
         return injectedDispatcher
-                       ?.let {
-                           logStore.d("Use injected dispatcher %s".format(it::class.simpleName))
-                           it
-                       }
-               ?: run {
-                   logStore.d("Use current store %s as dispatcher".format(this::class.simpleName))
-                   this
-               }
+            ?.let {
+                logStore.d("Use injected dispatcher %s".format(it::class.simpleName))
+                it
+            }
+            ?: run {
+                logStore.d("Use current store %s as dispatcher".format(this::class.simpleName))
+                this
+            }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -241,7 +241,7 @@ class Store<STATE : State> private constructor(
 
         /**
          * Register a reducer that processes [ACTION] and returns a [STATE] (not a ReducerResult) without any
-         * follow up actions or effects
+         * follow-up actions or effects
          */
         inline fun <reified ACTION : Action> registerReducerToState(
             noinline codeToState: (STATE, ACTION) -> STATE
@@ -282,10 +282,10 @@ class Store<STATE : State> private constructor(
                     clazz = this::class,
                     logMode = MoReduxSettings.LogMode.MINIMAL,
                     message = "Reducer wants action (%s) that is also wanted by an already registered reducer (%s) as well " +
-                              "-> Skipping registration".format(
-                                  ACTION::class.simpleName,
-                                  reducers[ACTION::class]
-                              )
+                            "-> Skipping registration".format(
+                                ACTION::class.simpleName,
+                                reducers[ACTION::class]
+                            )
                 )
                 return this
             }
@@ -308,6 +308,21 @@ class Store<STATE : State> private constructor(
             middlewareManagerBuilder.registerMiddleware(middleware)
         }
 
+        fun registerMiddleware(middlewareCallback: (Dispatcher, STATE, Action, (Action) -> Any) -> Unit): Builder<STATE> =
+            also {
+                val middleware = object : Middleware<STATE> {
+                    override fun invoke(
+                        dispatcher: Dispatcher,
+                        state: STATE,
+                        action: Action,
+                        next: (Action) -> Any
+                    ) {
+                        middlewareCallback.invoke(dispatcher, state, action, next)
+                    }
+                }
+                middlewareManagerBuilder.registerMiddleware(middleware)
+            }
+
         /**
          * Register a middleware that is executed just when [ACTION] is dispatched
          *
@@ -317,6 +332,22 @@ class Store<STATE : State> private constructor(
             middleware: MiddlewareForAction<STATE, ACTION>
         ): Builder<STATE> = also {
             registerMiddlewareForAction(ACTION::class, middleware)
+        }
+
+        inline fun <reified ACTION : Action> registerMiddlewareForAction(
+            crossinline middlewareForActionCallback: (Dispatcher, STATE, ACTION, (Action) -> Any) -> Unit
+        ): Builder<STATE> = also {
+            val middlewareForAction = object : MiddlewareForAction<STATE, ACTION> {
+                override fun invoke(
+                    dispatcher: Dispatcher,
+                    state: STATE,
+                    action: ACTION,
+                    next: (Action) -> Any
+                ) {
+                    middlewareForActionCallback.invoke(dispatcher, state, action, next)
+                }
+            }
+            registerMiddlewareForAction(ACTION::class, middlewareForAction)
         }
 
         /**

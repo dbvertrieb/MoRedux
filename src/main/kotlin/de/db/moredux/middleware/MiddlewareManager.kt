@@ -30,6 +30,7 @@ internal class MiddlewareManager<STATE : State>(
      * Remove all links to the registered middlewares at the end
      */
     internal fun teardown() {
+        middlewares.forEach { it.middleware.teardown() }
         middlewares.clear()
     }
 

@@ -4,13 +4,13 @@ import de.db.moredux.Action
 import de.db.moredux.State
 import de.db.moredux.store.Dispatcher
 
-fun interface MiddlewareForAction<STATE : State, ACTION : Action> : MiddlewareParent<STATE> {
+interface MiddlewareForAction<STATE : State, ACTION : Action> : MiddlewareParent<STATE> {
     /**
      * Same as [Middleware], but this Middleware is only processed/executed in case the [ACTION] is being dispatched.
      * For every other Action, this MiddlewareForAction is skipped.
      *
-     * @param dispatcher a dispatcher to dispatch new actions. Its either the store, where this Middleware is registered,
-     * or the dispatcher that has been injected in that store.
+     * @param dispatcher a dispatcher to dispatch new actions. It's either the store, where this Middleware is
+     * registered, or the dispatcher that has been injected in that store.
      * @param state the state as it was at the time, the action has been originally dispatched to the store
      * where this Middleware is registered
      * @param action the action that is currently processed

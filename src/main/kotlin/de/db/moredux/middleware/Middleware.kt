@@ -4,7 +4,7 @@ import de.db.moredux.Action
 import de.db.moredux.State
 import de.db.moredux.store.Dispatcher
 
-fun interface Middleware<STATE : State> : MiddlewareParent<STATE> {
+interface Middleware<STATE : State> : MiddlewareParent<STATE> {
     /**
      * Do whatever you want within the middleware, but remember to execute the callback
      * that is passed to the middleware. If the callback is not executed, the chain of execution and the dispatching
@@ -12,8 +12,8 @@ fun interface Middleware<STATE : State> : MiddlewareParent<STATE> {
      *
      * Use this e.g. to do some data loading, logging, rewriting actions or whatever
      *
-     * @param dispatcher a dispatcher to dispatch new actions. Its either the store, where this Middleware is registered,
-     * or the dispatcher that has been injected in that store.
+     * @param dispatcher a dispatcher to dispatch new actions. It's either the store, where this Middleware is
+     * registered, or the dispatcher that has been injected in that store.
      * @param state the state as it was at the time, the action has been originally dispatched to the store
      * where this Middleware is registered
      * @param action the action that is currently processed
