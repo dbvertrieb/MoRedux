@@ -22,7 +22,7 @@ import de.db.moredux.State
 /**
  * The ReducerCallback maps a callback function to a regular Reducer, so no special class extending the abstract Reducer
  * is necessary.
- * The return value type of the callback function is a State. This can be used in case no follow up Action or Effect
+ * The return value type of the callback function is a State. This can be used in case no follow-up Action or Effect
  * are returned as result of the Reducer.
  *
  * This reduces even more boilerplate code, than the ReducerCallback

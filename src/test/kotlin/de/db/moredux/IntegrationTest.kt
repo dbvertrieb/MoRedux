@@ -106,7 +106,7 @@ class IntegrationTest {
             state.todos.filterIndexed { index, _ -> !state.done[index] }
         }
 
-        // Perform some actions - these would be actions trigger by user input - all of them are not executed since the
+        // Perform some actions - these would be actions trigger by user input - all of them are not executed since
         // the first middleware breaks
         store.dispatch(Add("Invite friends"))
         store.dispatch(Add("Cook dinner"))

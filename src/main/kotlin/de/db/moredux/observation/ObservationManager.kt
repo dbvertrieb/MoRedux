@@ -54,7 +54,7 @@ internal class ObservationManager<STATE : State>(
     }
 
     /**
-     * Remove the passed [stateObserver] from the observer list. May be a StateObserver instance including Selectors
+     * Remove the passed [stateObserver] from the observer list. It may be a StateObserver instance including Selectors
      */
     internal fun removeObserver(stateObserver: StateObserver<STATE>) {
         stateObservers.remove(stateObserver)

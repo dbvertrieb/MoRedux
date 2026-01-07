@@ -122,7 +122,7 @@ class StoreContainerTest {
     }
 
     @Test
-    fun `DispatchCounter should be incremented for each succesfull dispatch`() {
+    fun `DispatchCounter should be incremented for each successful dispatch`() {
         // Given
         val storeContainer = StoreContainer.Builder()
                 .addStore(createStoreTodo())

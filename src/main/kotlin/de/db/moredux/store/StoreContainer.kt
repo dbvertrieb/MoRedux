@@ -42,7 +42,7 @@ class StoreContainer private constructor(
     }
 
     /**
-     * @return if true, than one of the stores contained in this StoreContainer, wants the passed
+     * @return if true, then one of the stores contained in this StoreContainer, wants the passed
      * [action]
      */
     fun wants(action: Action): Boolean = stores.any { it.wants(action) }
