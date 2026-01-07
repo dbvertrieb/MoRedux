@@ -320,7 +320,7 @@ class Store<STATE : State> private constructor(
                         middlewareCallback.invoke(dispatcher, state, action, next)
                     }
                 }
-                middlewareManagerBuilder.registerMiddleware(middleware)
+                registerMiddleware(middleware)
             }
 
         /**

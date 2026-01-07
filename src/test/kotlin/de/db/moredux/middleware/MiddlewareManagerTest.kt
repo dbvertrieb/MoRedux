@@ -7,20 +7,71 @@ import de.db.moredux.preferences.PreferencesState
 import de.db.moredux.preferences.ReducerSetDarkMode
 import de.db.moredux.preferences.ReducerSetLightMode
 import de.db.moredux.preferences.ReducerSetUsername
+import de.db.moredux.store.Dispatcher
 import de.db.moredux.store.Store
 import de.db.moredux.todo.TodoAction
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 class MiddlewareManagerTest {
 
     @Test
+    fun `test teardown`() {
+        // Given
+        var teardownMiddleware = false
+        var teardownMiddlewareForAction = false
+        val middlewareManager = MiddlewareManager.Companion.Builder<PreferencesState>()
+            .withState(PreferencesState::class)
+            .registerMiddleware(
+                middleware = object : Middleware<PreferencesState> {
+                    override fun invoke(
+                        dispatcher: Dispatcher,
+                        state: PreferencesState,
+                        action: Action,
+                        next: (Action) -> Any
+                    ) {
+                        println("Dummy")
+                    }
+
+                    override fun teardown() {
+                        teardownMiddleware = true
+                    }
+                })
+            .registerMiddlewareForAction(
+                actionClazz = PreferencesAction.SetLightMode::class,
+                middleware = object : MiddlewareForAction<PreferencesState, PreferencesAction.SetLightMode> {
+                    override fun invoke(
+                        dispatcher: Dispatcher,
+                        state: PreferencesState,
+                        action: PreferencesAction.SetLightMode,
+                        next: (Action) -> Any
+                    ) {
+                        println("Dummy")
+                    }
+
+                    override fun teardown() {
+                        teardownMiddlewareForAction = true
+                    }
+                })
+            .build()
+
+
+        // When
+        middlewareManager.teardown()
+
+        // Then
+        assertThat(teardownMiddleware).isTrue()
+        assertThat(teardownMiddlewareForAction).isTrue()
+    }
+
+    @Test
     fun `test simple passthrough middleware`() {
         // Given
         val store = Store.Builder<PreferencesState>()
-                .withInitialState(PreferencesState.INITIAL)
-                .registerReducer<PreferencesAction.SetLightMode>(ReducerSetLightMode())
-                .registerMiddleware { _, _, action, next -> next(action) }
-                .build()
+            .withInitialState(PreferencesState.INITIAL)
+            .registerReducer<PreferencesAction.SetLightMode>(ReducerSetLightMode())
+            .registerMiddleware { _, _, action, next -> next(action) }
+            .build()
 
         // When
         store.dispatch(PreferencesAction.SetLightMode)
@@ -34,16 +85,16 @@ class MiddlewareManagerTest {
     fun `test middleware creates additional action`() {
         // Given
         val store = Store.Builder<PreferencesState>()
-                .withInitialState(PreferencesState.INITIAL)
-                .registerReducer<PreferencesAction.SetDarkMode>(ReducerSetDarkMode())
-                .registerReducer<PreferencesAction.SetUsername>(ReducerSetUsername())
-                .registerMiddleware { dispatcher, _, action, next ->
-                    next(action)
-                    if (action is PreferencesAction.SetDarkMode) {
-                        dispatcher.dispatch(PreferencesAction.SetUsername("WEREWOLF"))
-                    }
+            .withInitialState(PreferencesState.INITIAL)
+            .registerReducer<PreferencesAction.SetDarkMode>(ReducerSetDarkMode())
+            .registerReducer<PreferencesAction.SetUsername>(ReducerSetUsername())
+            .registerMiddleware { dispatcher, _, action, next ->
+                next(action)
+                if (action is PreferencesAction.SetDarkMode) {
+                    dispatcher.dispatch(PreferencesAction.SetUsername("WEREWOLF"))
                 }
-                .build()
+            }
+            .build()
 
         // When
         store.dispatch(PreferencesAction.SetDarkMode)
@@ -58,17 +109,17 @@ class MiddlewareManagerTest {
     fun `test middleware modifies action and dispatches again via next function`() {
         // Given
         val store = Store.Builder<PreferencesState>()
-                .withInitialState(PreferencesState.INITIAL)
-                .registerReducer<PreferencesAction.SetUsername>(ReducerSetUsername())
-                .registerMiddleware { _, _, action, next ->
-                    val newAction = if (action is PreferencesAction.SetUsername) {
-                        PreferencesAction.SetUsername(action.username.uppercase())
-                    } else {
-                        action
-                    }
-                    next(newAction)
+            .withInitialState(PreferencesState.INITIAL)
+            .registerReducer<PreferencesAction.SetUsername>(ReducerSetUsername())
+            .registerMiddleware { _, _, action, next ->
+                val newAction = if (action is PreferencesAction.SetUsername) {
+                    PreferencesAction.SetUsername(action.username.uppercase())
+                } else {
+                    action
                 }
-                .build()
+                next(newAction)
+            }
+            .build()
 
         // When
         store.dispatch(PreferencesAction.SetUsername("vampire"))
@@ -82,23 +133,23 @@ class MiddlewareManagerTest {
     fun `test middleware that is registered for just one action`() {
         // Given
         val store = Store.Builder<PreferencesState>()
-                .withInitialState(PreferencesState.INITIAL)
-                .registerReducer<PreferencesAction.SetUsername>(ReducerSetUsername())
-                .registerMiddleware { _, _, action, next ->
-                    val newAction = if (action is PreferencesAction.SetUsername) {
-                        PreferencesAction.SetUsername(action.username.uppercase())
-                    } else {
-                        action
-                    }
-                    next(newAction)
+            .withInitialState(PreferencesState.INITIAL)
+            .registerReducer<PreferencesAction.SetUsername>(ReducerSetUsername())
+            .registerMiddleware { _, _, action, next ->
+                val newAction = if (action is PreferencesAction.SetUsername) {
+                    PreferencesAction.SetUsername(action.username.uppercase())
+                } else {
+                    action
                 }
-                .registerMiddlewareForAction<PreferencesAction.SetUsername> { _, _, action, next ->
-                    next(PreferencesAction.SetUsername(action.username + " modified"))
-                }
-                .registerMiddlewareForAction(PreferencesAction.SetLightMode::class) { _, _, _, next ->
-                    next(PreferencesAction.SetDarkMode)
-                }
-                .build()
+                next(newAction)
+            }
+            .registerMiddlewareForAction<PreferencesAction.SetUsername> { _, _, action, next ->
+                next(PreferencesAction.SetUsername(action.username + " modified"))
+            }
+            .registerMiddlewareForAction<PreferencesAction.SetLightMode> { _, _, _, next ->
+                next(PreferencesAction.SetDarkMode)
+            }
+            .build()
 
         // When
         store.dispatch(PreferencesAction.SetUsername("vampire"))
@@ -109,36 +160,59 @@ class MiddlewareManagerTest {
         assertThat(store.state.lightMode).isTrue()
     }
 
-    @Test
-    fun `test wants with a general middleware`() {
-        // Given
-        val middlewareManager = MiddlewareManager.Companion.Builder<PreferencesState>()
+    @Nested
+    inner class Wants {
+
+        @Test
+        fun `test wants with a general middleware`() {
+            // Given
+            val middlewareManager = MiddlewareManager.Companion.Builder<PreferencesState>()
                 .withState(PreferencesState::class)
-                .registerMiddleware { _, _, _, _ -> println("Dummy") }
+                .registerMiddleware(
+                    middleware = object : Middleware<PreferencesState> {
+                        override fun invoke(
+                            dispatcher: Dispatcher,
+                            state: PreferencesState,
+                            action: Action,
+                            next: (Action) -> Any
+                        ) {
+                            println("Dummy")
+                        }
+                    })
                 .build()
 
-        // When & Then
-        assertThat(middlewareManager.wants(PreferencesAction.SetLightMode)).isTrue()
-        assertThat(middlewareManager.wants(PreferencesAction.SetDarkMode)).isTrue()
-        assertThat(middlewareManager.wants(TodoAction.IncrementCounter)).isTrue()
-        assertThat(middlewareManager.wants(object : Action {})).isTrue()
-    }
+            // When & Then
+            assertThat(middlewareManager.wants(PreferencesAction.SetLightMode)).isTrue()
+            assertThat(middlewareManager.wants(PreferencesAction.SetDarkMode)).isTrue()
+            assertThat(middlewareManager.wants(TodoAction.IncrementCounter)).isTrue()
+            assertThat(middlewareManager.wants(object : Action {})).isTrue()
+        }
 
-    @Test
-    fun `test wants with an action specific middleware`() {
-        // Given
-        val middlewareManager = MiddlewareManager.Companion.Builder<PreferencesState>()
+        @Test
+        fun `test wants with an action specific middleware`() {
+            // Given
+            val middlewareManager = MiddlewareManager.Companion.Builder<PreferencesState>()
                 .withState(PreferencesState::class)
-                .registerMiddlewareForAction<PreferencesAction.SetLightMode> { _, _, _, _ ->
-                    println("Dummy")
-                }
+                .registerMiddlewareForAction(
+                    actionClazz = PreferencesAction.SetLightMode::class,
+                    middleware = object : MiddlewareForAction<PreferencesState, PreferencesAction.SetLightMode> {
+                        override fun invoke(
+                            dispatcher: Dispatcher,
+                            state: PreferencesState,
+                            action: PreferencesAction.SetLightMode,
+                            next: (Action) -> Any
+                        ) {
+                            println("Dummy")
+                        }
+                    })
                 .build()
 
-        // When & Then
-        assertThat(middlewareManager.wants(PreferencesAction.SetLightMode)).isTrue()
-        assertThat(middlewareManager.wants(PreferencesAction.SetDarkMode)).isFalse()
-        assertThat(middlewareManager.wants(TodoAction.IncrementCounter)).isFalse()
-        assertThat(middlewareManager.wants(object : Action {})).isFalse()
+            // When & Then
+            assertThat(middlewareManager.wants(PreferencesAction.SetLightMode)).isTrue()
+            assertThat(middlewareManager.wants(PreferencesAction.SetDarkMode)).isFalse()
+            assertThat(middlewareManager.wants(TodoAction.IncrementCounter)).isFalse()
+            assertThat(middlewareManager.wants(object : Action {})).isFalse()
+        }
     }
 
     @Test
@@ -146,25 +220,25 @@ class MiddlewareManagerTest {
         // Given
         val path = mutableListOf<String>()
         val store = Store.Builder<PreferencesState>()
-                .withInitialState(PreferencesState.INITIAL)
-                .registerReducer<PreferencesAction.SetLightMode>(ReducerSetLightMode())
-                .registerMiddlewareForAction<PreferencesAction.SetUsername> { _, _, action, next ->
-                    path.add("SetUsername 1 ${action.username}")
-                    next(action)
-                }
-                .registerMiddleware { _, _, action, next ->
-                    path.add("General 1")
-                    next(action)
-                }
-                .registerMiddlewareForAction<PreferencesAction.SetUsername> { _, _, action, next ->
-                    path.add("SetUsername 2 ${action.username}")
-                    next(action)
-                }
-                .registerMiddleware { _, _, action, next ->
-                    path.add("General 2")
-                    next(action)
-                }
-                .build()
+            .withInitialState(PreferencesState.INITIAL)
+            .registerReducer<PreferencesAction.SetLightMode>(ReducerSetLightMode())
+            .registerMiddlewareForAction<PreferencesAction.SetUsername> { _, _, action, next ->
+                path.add("SetUsername 1 ${action.username}")
+                next(action)
+            }
+            .registerMiddleware { _, _, action, next ->
+                path.add("General 1")
+                next(action)
+            }
+            .registerMiddlewareForAction<PreferencesAction.SetUsername> { _, _, action, next ->
+                path.add("SetUsername 2 ${action.username}")
+                next(action)
+            }
+            .registerMiddleware { _, _, action, next ->
+                path.add("General 2")
+                next(action)
+            }
+            .build()
 
         // When
         store.dispatch(PreferencesAction.SetUsername("Henrik"))

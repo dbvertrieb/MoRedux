@@ -189,12 +189,6 @@ internal class MiddlewareManager<STATE : State>(
             /**
              * Register a middleware for exactly one action
              */
-            inline fun <reified ACTION : Action> registerMiddlewareForAction(
-                middleware: MiddlewareForAction<STATE, ACTION>
-            ): Builder<STATE> = also {
-                registerMiddlewareForAction(ACTION::class, middleware)
-            }
-
             private fun doesMiddlewareExist(middleware: MiddlewareParent<STATE>): Boolean =
                 if (middlewares.any { it.middleware == middleware }) {
                     MoReduxLogger.w(
