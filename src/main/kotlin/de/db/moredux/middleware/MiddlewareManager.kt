@@ -23,16 +23,27 @@ internal class MiddlewareManager<STATE : State>(
     internal fun wants(action: Action): Boolean =
         middlewares.any {
             it.actionClazz == null ||
-            it.actionClazz == action::class
+                    it.actionClazz == action::class
         }
 
+    /**
+     * Remove all links to the registered middlewares at the end
+     */
     internal fun teardown() {
         middlewares.clear()
     }
 
-    internal fun hasMiddleware() =
-        middlewares.isNotEmpty()
-
+    /**
+     * Start the execution of the middlewares processing the passed [action]
+     *
+     * @param dispatcher the dispatcher passed to the middleware for further use
+     * @param state the state that was current when the action dispatching started in the parent store
+     * @param action the action that is processed
+     * @param currentDispatchCount a counter used within logging to make one dispatching process visible in the logs
+     * @param startReduction a callback, that will be executed, when the last middleware finished with a "next(…)"
+     * execution and reduction starts (execution of the according reducer in the store)
+     * @
+     */
     internal fun execute(
         dispatcher: Dispatcher,
         state: STATE,
@@ -49,7 +60,7 @@ internal class MiddlewareManager<STATE : State>(
         action: ACTION,
         currentDispatchCount: Int,
         middlewareIndex: Int,
-        startReduction: (ACTION) -> Unit
+        startReduction: (Action) -> Unit
     ) {
         val logMiddleware = LogMiddleware(currentDispatchCount, middlewareIndex, stateClazz)
         val container = middlewares.getOrNull(middlewareIndex)
@@ -62,8 +73,8 @@ internal class MiddlewareManager<STATE : State>(
             container.actionClazz != null && container.actionClazz != action::class -> {
                 logMiddleware.d(
                     "Middleware with index: $middlewareIndex is registered for action ${container.actionClazz.simpleName} " +
-                    "and does not match action ${action::class.simpleName} " +
-                    "-> Continue with next middleware"
+                            "and does not match action ${action::class.simpleName} " +
+                            "-> Continue with next middleware"
                 )
 
                 val nextMiddlewareIndex = middlewareIndex + 1
@@ -122,7 +133,7 @@ internal class MiddlewareManager<STATE : State>(
                             action = nextAction,
                             currentDispatchCount = currentDispatchCount,
                             middlewareIndex = nextMiddlewareIndex,
-                            startReduction = startReduction as (Action) -> Unit
+                            startReduction = startReduction
                         )
                         logMiddleware.d("Return from middleware with index: $nextMiddlewareIndex")
                     }
@@ -132,12 +143,18 @@ internal class MiddlewareManager<STATE : State>(
         }
     }
 
+    /**
+     * Internal model to manage Middlewares and the action classes they are responsible for, if any
+     */
     internal data class Container<STATE : State>(
         val middleware: MiddlewareParent<STATE>,
         val actionClazz: KClass<*>?
     )
 
     companion object {
+        /**
+         * Builder for the MiddlewareManager, responsible for all registrations and the action processing
+         */
         class Builder<STATE : State> {
 
             private lateinit var stateClazz: KClass<out STATE>
@@ -192,7 +209,7 @@ internal class MiddlewareManager<STATE : State>(
             fun build(): MiddlewareManager<STATE> {
                 assert(this::stateClazz.isInitialized) {
                     "MiddlewareBuilder stateClazz has not been initialized. " +
-                    "Building a MiddlewareManager is impossible."
+                            "Building a MiddlewareManager is impossible."
                 }
                 return MiddlewareManager(stateClazz, middlewares)
             }

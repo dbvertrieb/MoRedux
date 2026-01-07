@@ -98,7 +98,7 @@ class Store<STATE : State> private constructor(
         val logStore = LogStore(currentDispatchCount, state::class)
         logStore.d("Dispatch action: %s".format(action), MoReduxSettings.LogMode.MINIMAL)
 
-        if (middlewareManager.hasMiddleware()) {
+        if (middlewareManager.wants(action)) {
             middlewareManager.execute(
                 dispatcher = resolveDispatcher(currentDispatchCount),
                 state = state,
@@ -325,7 +325,7 @@ class Store<STATE : State> private constructor(
          * You can register as many middleware of type [actionClazz] as you like to
          */
         fun <ACTION : Action> registerMiddlewareForAction(
-            actionClazz: KClass<*>,
+            actionClazz: KClass<ACTION>,
             middleware: MiddlewareForAction<STATE, ACTION>
         ): Builder<STATE> = also {
             middlewareManagerBuilder.registerMiddlewareForAction(actionClazz, middleware)

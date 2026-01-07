@@ -7,7 +7,6 @@ import de.db.moredux.preferences.PreferencesState
 import de.db.moredux.preferences.ReducerSetDarkMode
 import de.db.moredux.preferences.ReducerSetLightMode
 import de.db.moredux.preferences.ReducerSetUsername
-import de.db.moredux.store.Dispatcher
 import de.db.moredux.store.Store
 import de.db.moredux.todo.TodoAction
 import org.junit.jupiter.api.Test
@@ -94,12 +93,7 @@ class MiddlewareManagerTest {
                     next(newAction)
                 }
                 .registerMiddlewareForAction<PreferencesAction.SetUsername> { _, _, action, next ->
-                    val newAction = if (action is PreferencesAction.SetUsername) {
-                        PreferencesAction.SetUsername(action.username + " modified")
-                    } else {
-                        action
-                    }
-                    next(newAction)
+                    next(PreferencesAction.SetUsername(action.username + " modified"))
                 }
                 .registerMiddlewareForAction(PreferencesAction.SetLightMode::class) { _, _, _, next ->
                     next(PreferencesAction.SetDarkMode)

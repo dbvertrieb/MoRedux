@@ -6,11 +6,8 @@ import de.db.moredux.store.Dispatcher
 
 fun interface MiddlewareForAction<STATE : State, ACTION : Action> : MiddlewareParent<STATE> {
     /**
-     * Do whatever you want within the middleware, but remember to execute the callback
-     * that is passed to the middleware. If the callback is not executed, the chain of execution and the dispatching
-     * will stop.
-     *y
-     * Use this e.g. to do some data loading, logging, rewriting actions or whatever
+     * Same as [Middleware], but this Middleware is only processed/executed in case the [ACTION] is being dispatched.
+     * For every other Action, this MiddlewareForAction is skipped.
      *
      * @param dispatcher a dispatcher to dispatch new actions. Its either the store, where this Middleware is registered,
      * or the dispatcher that has been injected in that store.
@@ -23,5 +20,5 @@ fun interface MiddlewareForAction<STATE : State, ACTION : Action> : MiddlewarePa
      * If you want proper dispatch counters, or you want to dispatch actions via the stores
      * injected dispatcher, use the passed [dispatcher].
      */
-    operator fun invoke(dispatcher: Dispatcher, state: STATE, action: ACTION, next: (ACTION) -> Any)
+    operator fun invoke(dispatcher: Dispatcher, state: STATE, action: ACTION, next: (Action) -> Any)
 }

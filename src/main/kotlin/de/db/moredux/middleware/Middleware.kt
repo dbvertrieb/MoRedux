@@ -9,7 +9,7 @@ fun interface Middleware<STATE : State> : MiddlewareParent<STATE> {
      * Do whatever you want within the middleware, but remember to execute the callback
      * that is passed to the middleware. If the callback is not executed, the chain of execution and the dispatching
      * will stop.
-     *y
+     *
      * Use this e.g. to do some data loading, logging, rewriting actions or whatever
      *
      * @param dispatcher a dispatcher to dispatch new actions. Its either the store, where this Middleware is registered,
