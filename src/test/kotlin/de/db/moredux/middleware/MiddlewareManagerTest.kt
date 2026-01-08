@@ -67,16 +67,21 @@ class MiddlewareManagerTest {
     @Test
     fun `test simple passthrough middleware`() {
         // Given
+        var middlewareExecuted = false
         val store = Store.Builder<PreferencesState>()
             .withInitialState(PreferencesState.INITIAL)
             .registerReducer<PreferencesAction.SetLightMode>(ReducerSetLightMode())
-            .registerMiddleware { _, _, action, next -> next(action) }
+            .registerMiddleware { _, _, action, next ->
+                middlewareExecuted = true
+                next(action)
+            }
             .build()
 
         // When
         store.dispatch(PreferencesAction.SetLightMode)
 
         // Then
+        assertThat(middlewareExecuted).isTrue()
         assertThat(store.dispatchCounter.get()).isEqualTo(1)
         assertThat(store.state.lightMode).isTrue()
     }
