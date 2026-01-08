@@ -102,7 +102,7 @@ internal class MiddlewareManager<STATE : State>(
                     action = action,
                     next = { nextAction ->
                         val nextMiddlewareIndex = middlewareIndex + 1
-                        logMiddleware.d("Pass to middleware with index: $nextMiddlewareIndex")
+                        logMiddleware.d("Pass action ${nextAction::class.simpleName} to middleware with index: $nextMiddlewareIndex")
                         executeInternal(
                             dispatcher = dispatcher,
                             state = state,
@@ -127,7 +127,7 @@ internal class MiddlewareManager<STATE : State>(
                     action = action,
                     next = { nextAction ->
                         val nextMiddlewareIndex = middlewareIndex + 1
-                        logMiddleware.d("Pass to middleware with index: $nextMiddlewareIndex")
+                        logMiddleware.d("Pass action ${nextAction::class.simpleName} to middleware with index: $nextMiddlewareIndex")
                         executeInternal(
                             dispatcher = dispatcher,
                             state = state,
