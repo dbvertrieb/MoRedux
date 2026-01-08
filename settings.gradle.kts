@@ -7,7 +7,7 @@ rootProject.name = "MoRedux"
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            version("kotlin", "2.2.21")
+            version("kotlin", "2.1.10")
             version("axion", "1.21.1")
             version("vanniktech-publish", "0.29.0")
             version("kotlinx-coroutines", "1.10.2")
