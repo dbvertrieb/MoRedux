@@ -42,32 +42,31 @@ class StoreContainer private constructor(
     }
 
     /**
-     * @return if true, than one of the stores contained in this StoreContainer, wants the passed
+     * @return if true, then one of the stores contained in this StoreContainer, wants the passed
      * [action]
      */
     fun wants(action: Action): Boolean = stores.any { it.wants(action) }
 
     /**
-     * actions and effects will be executed immediately by the store it is registered in
-     *
-     * @return true, if at least one store returned a successful dispatch
+     * actions and effects will be executed immediately by the store that 'wants' the action
+     * / the [action] is registered in.
+     * Only the middlewares of the stores, that 'want' the [action] are executed
      */
-    override fun dispatch(action: Action): Boolean {
-        var wasDispatched = false
+    override fun dispatch(action: Action) {
         stores.filter { it.wants(action) }
-            .forEach {
-                MoReduxLogger.d(
-                    this::class,
-                    MoReduxSettings.LogMode.FULL,
-                    "%d - Store for %s wants action %s -> START dispatching".format(
-                        dispatchCounter.incrementAndGet(),
-                        it.state::class.simpleName,
-                        action::class.simpleName
+                .forEach {
+                    val currentDispatchCount = dispatchCounter.get()
+                    MoReduxLogger.d(
+                        this::class,
+                        MoReduxSettings.LogMode.FULL,
+                        "%d - Store for %s wants action %s -> START dispatching".format(
+                            currentDispatchCount,
+                            it.state::class.simpleName,
+                            action::class.simpleName
+                        )
                     )
-                )
-                wasDispatched = it.dispatch(action) || wasDispatched
-            }
-        return wasDispatched
+                    it.dispatch(action)
+                }
     }
 
     /**
@@ -95,7 +94,7 @@ class StoreContainer private constructor(
                         this::class,
                         MoReduxSettings.LogMode.MINIMAL,
                         "Store for %s has already been added to the store list -> Skipping add"
-                            .format(STATE::class.simpleName)
+                                .format(STATE::class.simpleName)
                     )
 
                 store.isPartOfStoreContainer() ->
@@ -103,7 +102,7 @@ class StoreContainer private constructor(
                         this::class,
                         MoReduxSettings.LogMode.MINIMAL,
                         "Store for %s has already been added to another StoreContainer -> Skipping add"
-                            .format(STATE::class.simpleName)
+                                .format(STATE::class.simpleName)
                     )
 
                 else -> {

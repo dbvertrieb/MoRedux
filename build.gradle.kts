@@ -5,8 +5,18 @@ import com.vanniktech.maven.publish.SonatypeHost
 plugins {
     kotlin("jvm") version libs.versions.kotlin
     signing
+    `java-test-fixtures`
+
     alias(libs.plugins.vanniktech.publish)
     alias(libs.plugins.axion)
+
+    /*
+     * Execute the following gradle task in order to find all outdated dependencies:
+     * ./gradlew dependencyUpdates
+     *
+     * or just execute the dependecyUpdates of the "help" task in IntelliJ's gradle toolview
+     */
+    alias(libs.plugins.ben.manes)
 }
 
 // Axion plugin settings
@@ -25,6 +35,7 @@ repositories {
 dependencies {
     implementation(libs.kotlinx.coroutines)
 
+    testImplementation(testFixtures(project))
     testImplementation(libs.kotlin.test)
     testImplementation(libs.junit.jupiter.params)
     testImplementation(libs.google.truth)
@@ -37,6 +48,18 @@ tasks.test {
 
 kotlin {
     jvmToolchain(17)
+}
+
+// Signing is deactivated in case of a publishToMavenLocal
+// This should help testing MoRedux changes locally
+gradle.taskGraph.whenReady {
+    val taskName = "publishToMavenLocal"
+    logger.info("publishToMavenLocal")
+    val isSigningEnabled = allTasks.firstOrNull { it.name == taskName } == null
+    if (!isSigningEnabled) {
+        tasks.withType<Sign>().configureEach { onlyIf { isSigningEnabled } }
+        logger.info("Discovered execution of task '$taskName' -> Signing is disabled")
+    }
 }
 
 publishing {

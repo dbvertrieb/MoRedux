@@ -24,7 +24,7 @@ class CallbackStateObserverTest {
     @Test
     fun `test onStateChanged`() {
         // Given
-        var actualStatePropertyValue = "Some random inital value"
+        var actualStatePropertyValue = "Some random initial value"
         val sut = CallbackStateObserver<CallbackStateObserverState> { state ->
             actualStatePropertyValue = state.dummyStateProperty
         }

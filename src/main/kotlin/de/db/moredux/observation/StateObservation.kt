@@ -102,10 +102,10 @@ fun <STATE : State, VALUE> Store<STATE>.addSelectorFromCallback(
 }
 
 /**
- * Register a [map] as a Selector. This particular Selector extends a Kotlin coroutines MutableStateFlow and can be used as such.
- * The created Selector will be treated like any other StateObserver.
+ * Register a [map] function as a Selector. This particular Selector extends a Kotlin coroutines MutableStateFlow and
+ * can be used as such. The created Selector will be treated like any other StateObserver.
  *
- * @param initialValue the initial value o the created StateFlow
+ * @param initialValue the initial value of the created StateFlow
  * @param map the [map] function maps the state [STATE] to [VALUE]. The [VALUE] is published to the created MutableStateFlow
  * @return the SelectorToStateFlow instance that was constructed out of [map] - it's a MutableStateFlow under the hood
  * @see addSelectorFromCallback
@@ -123,8 +123,8 @@ fun <STATE : State, VALUE> Store<STATE>.addSelectorStateFlow(
 }
 
 /**
- * Register a [map] as a Selector. This particular Selector extends a Kotlin coroutines MutableStateFlow and can be used as such.
- * The created Selector will be treated like any other StateObserver.
+ * Register a [map] function as a Selector. This particular Selector extends a Kotlin coroutines MutableStateFlow and
+ * can be used as such. The created Selector will be treated like any other StateObserver.
  *
  * The initial value of the MutableStateFlow is the result of [map] over the current state of the store receiver.
  *

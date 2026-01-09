@@ -22,6 +22,8 @@ import de.db.moredux.State
 import de.db.moredux.observation.addStateObserver
 import de.db.moredux.reducer.Reducer
 import de.db.moredux.reducer.ReducerResult
+import de.db.moredux.settings.MoReduxSettings
+import de.db.moredux.settings.MoReduxSettings.LogMode
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -41,16 +43,16 @@ class StoreTest {
 
         // When
         store.teardown()
-        val wasDispatched = store.dispatch(TestAction1)
+        store.dispatch(TestAction1)
 
         // Then
-        assertThat(wasDispatched).isFalse()
         assertThat(store.wants(TestAction1)).isFalse()
         assertThat(store.wants(TestAction2)).isFalse()
+        assertThat(callbackState).isEmpty()
     }
 
     @Test
-    fun `test wants`() {
+    fun `test wants only with reducers`() {
         // Given
         val store = Store.Builder<StoreState>()
             .withInitialState(StoreState())
@@ -62,6 +64,22 @@ class StoreTest {
         assertThat(store.wants(TestAction1)).isTrue()
         assertThat(store.wants(TestAction2)).isTrue()
         assertThat(store.wants(TestAction3)).isFalse()
+    }
+
+    @Test
+    fun `test wants only with middlewares`() {
+        // Given
+        val store = Store.Builder<StoreState>()
+            .withInitialState(StoreState())
+            .registerMiddleware { _, _, _, _ ->
+                println("Dummy")
+            }
+            .build()
+
+        // When & Then
+        assertThat(store.wants(TestAction1)).isTrue()
+        assertThat(store.wants(TestAction2)).isTrue()
+        assertThat(store.wants(TestAction3)).isTrue()
     }
 
     @Test
@@ -85,10 +103,9 @@ class StoreTest {
         store.addStateObserver { state -> callbackState.add(state) }
 
         // When
-        val wasDispatched = store.dispatch(TestAction1)
+        store.dispatch(TestAction1)
 
         // Then
-        assertThat(wasDispatched).isTrue()
         assertThat(testReducer1Executed).isTrue()
         assertThat(testReducer2Executed).isFalse()
         assertThat(callbackState).hasSize(1)
@@ -230,13 +247,96 @@ class StoreTest {
         val injectedDispatcher: Dispatcher = mock()
         store.injectedDispatcher = injectedDispatcher
 
-
         // When
-        val wasDispatched = store.dispatch(TestAction1)
+        store.dispatch(TestAction1)
 
         // Then
         verify(injectedDispatcher).dispatch(TestAction2)
-        assertThat(wasDispatched).isTrue()
+    }
+
+    @Test
+    fun `dispatch with middleware with action rewrite without breaking the chain`() {
+        MoReduxSettings.logMode = LogMode.FULL
+        // Given
+        var preMiddlewareHasBeenProcessed = false
+        var postMiddlewareHasBeenProcessed = false
+        val store = Store.Builder<StoreState>()
+            .withInitialState(StoreState())
+            .registerMiddleware { _, _, _, next ->
+                preMiddlewareHasBeenProcessed = true
+                next(TestAction2)
+                postMiddlewareHasBeenProcessed = true
+            }
+            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+            .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
+            .build()
+
+        // When
+        store.dispatch(TestAction1)
+
+        // Then
+        assertThat(store.state.bla).isEqualTo("Reducer 2")
+        assertThat(preMiddlewareHasBeenProcessed).isTrue()
+        assertThat(postMiddlewareHasBeenProcessed).isTrue()
+    }
+
+    @Test
+    fun `dispatch with middleware that breaks the chain`() {
+        // Given
+        val store = Store.Builder<StoreState>()
+            .withInitialState(StoreState())
+            .registerMiddleware { _, _, action, next ->
+                if (action == TestAction2) {
+                    next(TestAction2)
+                }
+                // TestAction1 leads to breaking the execution change
+            }
+            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+            .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
+            .build()
+
+        // When
+        store.dispatch(TestAction1)
+
+        // Then
+        assertThat(store.state.bla).isNull()
+
+        // When
+        store.dispatch(TestAction2)
+
+        // Then
+        assertThat(store.state.bla).isEqualTo("Reducer 2")
+    }
+
+    @Test
+    fun `dispatch with middleware for action that rewrites the action`() {
+        // Given
+        val store = Store.Builder<StoreState>()
+            .withInitialState(StoreState())
+            .registerMiddlewareForAction<TestAction1> { _, _, _, next -> next(TestAction3) }
+            .registerMiddleware { _, _, action, next -> next(action) }
+            .registerReducerToState<TestAction1> { state, _ -> state.copy(bla = "Reducer 1") }
+            .registerReducerToState<TestAction2> { state, _ -> state.copy(bla = "Reducer 2") }
+            .registerReducerToState<TestAction3> { state, _ -> state.copy(bla = "Reducer 3") }
+            .build()
+
+        // When
+        store.dispatch(TestAction1)
+
+        // Then
+        assertThat(store.state.bla).isEqualTo("Reducer 3")
+
+        // When
+        store.dispatch(TestAction2)
+
+        // Then
+        assertThat(store.state.bla).isEqualTo("Reducer 2")
+
+        // When
+        store.dispatch(TestAction3)
+
+        // Then
+        assertThat(store.state.bla).isEqualTo("Reducer 3")
     }
 
     private data class StoreState(val bla: String? = null) : State {

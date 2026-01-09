@@ -79,7 +79,7 @@ They are executed / redispatched right after the reducer finishes.
 
 ## StateObserver
 
-A stateobserver is a function that is executed upon state changed. Whenever a reducer finishes its work, all registeres
+A stateobserver is a function that is executed upon state changed. Whenever a reducer finishes its work, all registered
 stateobservers are notified. Stateobservers (and Selectors - see below) are registered in a store.
 
 ## Selectors
@@ -87,14 +87,14 @@ stateobservers are notified. Stateobservers (and Selectors - see below) are regi
 Selectors are special types of stateobservers. Selectors are functions that extract specific pieces of the state from
 the store upon state change.They allow you to get the information
 from the state, without accessing the state of the store directly. A selector usually also applies some additional
-transformation to the piece of information it extracts from the state, e.g. a state contains a persons name and adress
+transformation to the piece of information it extracts from the state, e.g. a state contains a persons name and address
 all in lower case letters and a selector could now extract the family name and make sure the first letter is always a
 capital letter.
 
 ## Store
 
 The single source of truth where the state of the application is stored and managed. The store is also responsible for
-management of reducers and action dispatching. A dispatch takes an action as an argument and forwards it togetehr with
+management of reducers and action dispatching. A dispatch takes an action as an argument and forwards it together with
 the current state to the reducer responsible for that action.
 
 ## StoreContainer

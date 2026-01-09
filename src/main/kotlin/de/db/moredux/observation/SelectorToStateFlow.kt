@@ -17,12 +17,14 @@
 package de.db.moredux.observation
 
 import de.db.moredux.State
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * As soon as the Selector ist registered, onStateChanged() will be called with the state that is active at that moment.
  * The resulting value of map will be passed to the mutableStateFlow
  */
+@OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 abstract class SelectorToStateFlow<STATE : State, VALUE>(
     mutableStateFlow: MutableStateFlow<VALUE>
 ) : Selector<STATE, VALUE>(),

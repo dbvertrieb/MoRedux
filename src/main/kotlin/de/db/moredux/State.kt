@@ -18,7 +18,7 @@ package de.db.moredux
 
 /**
  * All MoRedux stores need a state, that implements this State interface. This gives the MoRedux states a namespace
- * and ensures, that a State can be copied/cloned at anytime.
+ * and ensures, that a State can be copied/cloned at any time.
  *
  * Make sure the State implementation contains only immutable members!
  */

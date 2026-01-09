@@ -30,7 +30,7 @@ data class ReducerResult<STATE : State>(
     val state: STATE,
 
     /**
-     * a follow up action if there is any. The action will get a copy of [state]
+     * a follow-up action if there is any. The action will get a copy of [state]
      */
     val action: Action? = null,
 

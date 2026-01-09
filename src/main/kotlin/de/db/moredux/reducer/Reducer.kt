@@ -45,7 +45,7 @@ abstract class Reducer<STATE : State, ACTION : Action> {
     fun wants(action: Action): Boolean = action::class == actionKClass
 
     /**
-     * Same as [reduce], but its a wrapper for internal processes
+     * Same as [reduce], but it's a wrapper for internal processes
      *
      * @param action the action to process
      * @param state the input state with all data the action should process
@@ -64,7 +64,7 @@ abstract class Reducer<STATE : State, ACTION : Action> {
 
     /**
      * Reduce the two inputs [state] and [action] to one instance of ReducerResult (the ReducerResult contains
-     * the new state + some follow up actions/effects)
+     * the new state + some follow-up actions/effects)
      *
      * @param state the state on which the [action] should be performed on
      * @param action the action to process

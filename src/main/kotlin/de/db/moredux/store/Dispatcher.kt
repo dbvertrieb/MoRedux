@@ -25,8 +25,6 @@ interface Dispatcher {
 
     /**
      * @param action action to dispatch
-     * @return if true, the action has been reduced successfully by a registered Reducer. If false, the action has not
-     * been reduced. Could be because a Reducer is missing for [action] or the reduction failed etc.
      */
-    fun dispatch(action: Action): Boolean
+    fun dispatch(action: Action)
 }
