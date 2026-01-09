@@ -7,8 +7,10 @@ import de.db.moredux.store.Dispatcher
 interface Middleware<STATE : State> : MiddlewareParent<STATE> {
     /**
      * Do whatever you want within the middleware, but remember to execute the callback
-     * that is passed to the middleware. If the callback is not executed, the chain of execution and the dispatching
-     * will stop.
+     * that is passed to the middleware.
+     *
+     * **IMPORTANT: If the callback is not executed, the chain of execution and the dispatching
+     * will stop.**
      *
      * Use this e.g. to do some data loading, logging, rewriting actions or whatever
      *

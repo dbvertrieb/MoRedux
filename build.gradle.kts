@@ -11,10 +11,10 @@ plugins {
     alias(libs.plugins.axion)
 
     /*
-     * Execute the following gradle task in order find all outdated dependency:
+     * Execute the following gradle task in order to find all outdated dependencies:
      * ./gradlew dependencyUpdates
      *
-     * or just execute the dependecyUpdates of the "help" tasks in Intellij's gradle toolview
+     * or just execute the dependecyUpdates of the "help" task in IntelliJ's gradle toolview
      */
     alias(libs.plugins.ben.manes)
 }
