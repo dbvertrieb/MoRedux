@@ -55,6 +55,9 @@ internal class MiddlewareManager<STATE : State>(
         executeInternal(dispatcher, state, action, currentDispatchCount, 0, startReduction)
     }
 
+    /**
+     * The internal recursion for middleware executions
+     */
     private fun <ACTION : Action> executeInternal(
         dispatcher: Dispatcher,
         state: STATE,
@@ -64,7 +67,7 @@ internal class MiddlewareManager<STATE : State>(
         startReduction: (Action) -> Unit
     ) {
         val logMiddleware = LogMiddleware(currentDispatchCount, middlewareIndex, stateClazz)
-        val container = middlewares.getOrNull(middlewareIndex)
+        val container: Container<STATE>? = middlewares.getOrNull(middlewareIndex)
         when {
             container == null -> {
                 logMiddleware.d("No middleware with index: $middlewareIndex -> Proceed with reducer dispatching")
@@ -72,76 +75,137 @@ internal class MiddlewareManager<STATE : State>(
             }
 
             container.actionClazz != null && container.actionClazz != action::class -> {
-                logMiddleware.d(
-                    "Middleware with index: $middlewareIndex is registered for action ${container.actionClazz.simpleName} " +
-                            "and does not match action ${action::class.simpleName} " +
-                            "-> Continue with next middleware"
-                )
-
-                val nextMiddlewareIndex = middlewareIndex + 1
-                logMiddleware.d("Pass to middleware with index: $nextMiddlewareIndex")
-                executeInternal(
+                executeIntermediateSkipMiddleware(
                     dispatcher = dispatcher,
                     state = state,
                     action = action,
+                    containerActionClazz = container.actionClazz,
+                    currentDispatchCount = currentDispatchCount,
+                    middlewareIndex = middlewareIndex,
+                    startReduction = startReduction
+                )
+            }
+
+            container.actionClazz == action::class -> {
+                executeIntermediateMiddlewareForAction(
+                    dispatcher = dispatcher,
+                    state = state,
+                    action = action,
+                    containerActionClazz = container.actionClazz,
+                    currentDispatchCount = currentDispatchCount,
+                    middlewareIndex = middlewareIndex,
+                    startReduction = startReduction
+                )
+            }
+
+            else -> {
+                executeIntermediateMiddleware(
+                    dispatcher = dispatcher,
+                    state = state,
+                    action = action,
+                    currentDispatchCount = currentDispatchCount,
+                    middlewareIndex = middlewareIndex,
+                    startReduction = startReduction
+                )
+            }
+        }
+    }
+
+    private fun <ACTION : Action> executeIntermediateSkipMiddleware(
+        dispatcher: Dispatcher,
+        state: STATE,
+        action: ACTION,
+        containerActionClazz: KClass<*>,
+        currentDispatchCount: Int,
+        middlewareIndex: Int,
+        startReduction: (Action) -> Unit
+    ) {
+        val logMiddleware = LogMiddleware(currentDispatchCount, middlewareIndex, stateClazz)
+        logMiddleware.d(
+            "Middleware with index: $middlewareIndex is registered for action ${containerActionClazz.simpleName} " +
+                    "and does not match action ${action::class.simpleName} " +
+                    "-> Continue with next middleware"
+        )
+
+        val nextMiddlewareIndex = middlewareIndex + 1
+        logMiddleware.d("Pass to middleware with index: $nextMiddlewareIndex")
+        executeInternal(
+            dispatcher = dispatcher,
+            state = state,
+            action = action,
+            currentDispatchCount = currentDispatchCount,
+            middlewareIndex = nextMiddlewareIndex,
+            startReduction = startReduction
+        )
+        logMiddleware.d("Return from middleware with index: $nextMiddlewareIndex")
+    }
+
+    private fun <ACTION : Action> executeIntermediateMiddlewareForAction(
+        dispatcher: Dispatcher,
+        state: STATE,
+        action: ACTION,
+        containerActionClazz: KClass<*>,
+        currentDispatchCount: Int,
+        middlewareIndex: Int,
+        startReduction: (Action) -> Unit
+    ) {
+        val logMiddleware = LogMiddleware(currentDispatchCount, middlewareIndex, stateClazz)
+        logMiddleware.d("Start execution for action: $containerActionClazz ...")
+
+        @Suppress("UNCHECKED_CAST")
+        val containerMiddleware = middlewares[middlewareIndex].middleware as MiddlewareForAction<STATE, ACTION>
+        containerMiddleware(
+            dispatcher = dispatcher,
+            state = state,
+            action = action,
+            next = { nextAction ->
+                val nextMiddlewareIndex = middlewareIndex + 1
+                logMiddleware.d("Pass action ${nextAction::class.simpleName} to middleware with index: $nextMiddlewareIndex")
+                executeInternal(
+                    dispatcher = dispatcher,
+                    state = state,
+                    action = nextAction,
                     currentDispatchCount = currentDispatchCount,
                     middlewareIndex = nextMiddlewareIndex,
                     startReduction = startReduction
                 )
                 logMiddleware.d("Return from middleware with index: $nextMiddlewareIndex")
             }
+        )
+        logMiddleware.d("Finish execution for action: $containerActionClazz ...")
+    }
 
-            container.actionClazz == action::class -> {
-                logMiddleware.d("Start execution for action: ${container.actionClazz} ...")
+    private fun <ACTION : Action> executeIntermediateMiddleware(
+        dispatcher: Dispatcher,
+        state: STATE,
+        action: ACTION,
+        currentDispatchCount: Int,
+        middlewareIndex: Int,
+        startReduction: (Action) -> Unit
+    ) {
+        val logMiddleware = LogMiddleware(currentDispatchCount, middlewareIndex, stateClazz)
+        logMiddleware.d("Start execution ...")
 
-                @Suppress("UNCHECKED_CAST")
-                val containerMiddleware = middlewares[middlewareIndex].middleware as MiddlewareForAction<STATE, ACTION>
-                containerMiddleware(
+        val containerMiddleware = middlewares[middlewareIndex].middleware as Middleware<STATE>
+        containerMiddleware(
+            dispatcher = dispatcher,
+            state = state,
+            action = action,
+            next = { nextAction ->
+                val nextMiddlewareIndex = middlewareIndex + 1
+                logMiddleware.d("Pass action ${nextAction::class.simpleName} to middleware with index: $nextMiddlewareIndex")
+                executeInternal(
                     dispatcher = dispatcher,
                     state = state,
-                    action = action,
-                    next = { nextAction ->
-                        val nextMiddlewareIndex = middlewareIndex + 1
-                        logMiddleware.d("Pass action ${nextAction::class.simpleName} to middleware with index: $nextMiddlewareIndex")
-                        executeInternal(
-                            dispatcher = dispatcher,
-                            state = state,
-                            action = nextAction,
-                            currentDispatchCount = currentDispatchCount,
-                            middlewareIndex = nextMiddlewareIndex,
-                            startReduction = startReduction
-                        )
-                        logMiddleware.d("Return from middleware with index: $nextMiddlewareIndex")
-                    }
+                    action = nextAction,
+                    currentDispatchCount = currentDispatchCount,
+                    middlewareIndex = nextMiddlewareIndex,
+                    startReduction = startReduction
                 )
-                logMiddleware.d("Finish execution for action: ${container.actionClazz} ...")
+                logMiddleware.d("Return from middleware with index: $nextMiddlewareIndex")
             }
-
-            else -> {
-                logMiddleware.d("Start execution ...")
-
-                val containerMiddleware = middlewares[middlewareIndex].middleware as Middleware<STATE>
-                containerMiddleware(
-                    dispatcher = dispatcher,
-                    state = state,
-                    action = action,
-                    next = { nextAction ->
-                        val nextMiddlewareIndex = middlewareIndex + 1
-                        logMiddleware.d("Pass action ${nextAction::class.simpleName} to middleware with index: $nextMiddlewareIndex")
-                        executeInternal(
-                            dispatcher = dispatcher,
-                            state = state,
-                            action = nextAction,
-                            currentDispatchCount = currentDispatchCount,
-                            middlewareIndex = nextMiddlewareIndex,
-                            startReduction = startReduction
-                        )
-                        logMiddleware.d("Return from middleware with index: $nextMiddlewareIndex")
-                    }
-                )
-                logMiddleware.d("Finish execution ...")
-            }
-        }
+        )
+        logMiddleware.d("Finish execution ...")
     }
 
     /**
