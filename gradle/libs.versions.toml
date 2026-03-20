@@ -1,0 +1,22 @@
+[versions]
+kotlin = "2.1.10"
+axion = "1.21.1"
+vanniktech-publish = "0.29.0"
+kotlinx-coroutines = "1.10.2"
+junit-jupiter = "6.0.1"
+google-truth = "1.4.5"
+mockito = "5.2.0"
+ben-manes = "0.51.0"
+
+[libraries]
+kotlinx-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
+junit-jupiter-params = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "junit-jupiter" }
+google-truth = { group = "com.google.truth", name = "truth", version.ref = "google-truth" }
+mockito-inline = { group = "org.mockito", name = "mockito-inline", version.ref = "mockito" }
+
+[plugins]
+vanniktech-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-publish" }
+axion = { id = "pl.allegro.tech.build.axion-release", version.ref = "axion" }
+ben-manes = { id = "com.github.ben-manes.versions", version.ref = "ben-manes" }
+
