@@ -26,14 +26,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
  */
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 abstract class SelectorToStateFlow<STATE : State, VALUE>(
-    mutableStateFlow: MutableStateFlow<VALUE>
-) : Selector<STATE, VALUE>(),
+    mutableStateFlow: MutableStateFlow<VALUE>,
+    notificationGuard: NotificationGuard<VALUE> = NotificationGuard.NoDuplicates()
+) : Selector<STATE, VALUE>(notificationGuard),
     MutableStateFlow<VALUE> by mutableStateFlow {
 
     override fun onStateChanged(state: STATE) {
-        val value = map(state)
+        val mappedValue = map(state)
 
-        notifyObservers(value)
-        this.value = value
+        if (notificationGuard.shouldNotify(mappedValue)) {
+            // update the MutableStateFlow
+            this.value = mappedValue
+
+            // notify observers
+            notifyObservers(mappedValue)
+        }
     }
 }

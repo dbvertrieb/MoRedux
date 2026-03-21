@@ -19,46 +19,124 @@ package de.db.moredux.observation
 import com.google.common.truth.Truth.assertThat
 import de.db.moredux.State
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.junit.Test
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 
 class SelectorToStateFlowTest {
 
-    private val sut = object : SelectorToStateFlow<SelectorState, String>(MutableStateFlow("INITIAL VALUE")) {
-        override fun map(state: SelectorState): String = state.bla?.uppercase().orEmpty()
+    private fun createSut(notificationGuard: NotificationGuard<String>): SelectorToStateFlow<SelectorState, String> =
+        object : SelectorToStateFlow<SelectorState, String>(MutableStateFlow("INITIAL VALUE"), notificationGuard) {
+            override fun map(state: SelectorState): String = state.bla?.uppercase().orEmpty()
+        }
+
+    @Nested
+    inner class ObserveAndRemoveTest {
+
+        @Test
+        fun `test observeSelector notifies observer on state change`() {
+            // Given
+            val sut = createSut(NotificationGuard.AlwaysAllow())
+            var observed = ""
+            sut.observeSelector { value -> observed = value }
+
+            // When
+            sut.onStateChanged(SelectorState("new value"))
+
+            // Then
+            assertThat(observed).isEqualTo("NEW VALUE")
+        }
+
+        @Test
+        fun `test removeAllSelectorObservers stops notifications`() {
+            // Given
+            val sut = createSut(NotificationGuard.AlwaysAllow())
+            var observed = ""
+            sut.observeSelector { value -> observed = value }
+            sut.onStateChanged(SelectorState("new value"))
+
+            // When
+            sut.removeAllSelectorObservers()
+            sut.onStateChanged(SelectorState("very new value"))
+
+            // Then
+            assertThat(observed).isEqualTo("NEW VALUE")
+        }
+
+        @Test
+        fun `test onStateChanged updates StateFlow value`() {
+            // Given
+            val sut = createSut(NotificationGuard.AlwaysAllow())
+
+            // When
+            sut.onStateChanged(SelectorState("new value"))
+
+            // Then
+            assertThat(sut.value).isEqualTo("NEW VALUE")
+        }
     }
 
-    @Test
-    fun `test observeSelector and removeAllSelectorObservers`() {
-        // Given
-        var observed = ""
-        sut.observeSelector { value -> observed = value }
+    @Nested
+    inner class NoDuplicatesGuardTest {
 
-        // When
-        sut.onStateChanged(SelectorState("new value"))
+        @Test
+        fun `test onStateChanged does not notify or update StateFlow for equal mapped value`() {
+            // Given
+            val sut = createSut(NotificationGuard.NoDuplicates())
+            val observed = mutableListOf<String>()
+            sut.observeSelector { value -> observed.add(value) }
 
-        // Then
-        assertThat(observed).isEqualTo("NEW VALUE")
+            // When
+            sut.onStateChanged(SelectorState("same"))
+            sut.onStateChanged(SelectorState("same"))
 
-        // When
-        sut.removeAllSelectorObservers()
-        sut.onStateChanged(SelectorState("very new value"))
+            // Then
+            assertThat(observed).hasSize(1)
+            assertThat(sut.value).isEqualTo("SAME")
+        }
 
-        // Then
-        assertThat(observed).isEqualTo("NEW VALUE")
+        @Test
+        fun `test onStateChanged notifies and updates StateFlow for different mapped values`() {
+            // Given
+            val sut = createSut(NotificationGuard.NoDuplicates())
+            val observed = mutableListOf<String>()
+            sut.observeSelector { value -> observed.add(value) }
+
+            // When
+            sut.onStateChanged(SelectorState("first"))
+            sut.onStateChanged(SelectorState("second"))
+
+            // Then
+            assertThat(observed).containsExactly("FIRST", "SECOND").inOrder()
+            assertThat(sut.value).isEqualTo("SECOND")
+        }
     }
 
-    @Test
-    fun `test StateFlow updates`() {
+    @Nested
+    inner class AlwaysAllowGuardTest {
 
-        // When
-        sut.onStateChanged(SelectorState("new value"))
+        @Test
+        fun `test onStateChanged always notifies and updates StateFlow even for equal mapped value`() {
+            // Given
+            val sut = createSut(NotificationGuard.AlwaysAllow())
+            val observed = mutableListOf<String>()
+            sut.observeSelector { value -> observed.add(value) }
 
-        // Then
-        assertThat(sut).isInstanceOf(MutableStateFlow::class.java)
-        assertThat(sut.value).isEqualTo("NEW VALUE")
+            // When
+            sut.onStateChanged(SelectorState("same"))
+            sut.onStateChanged(SelectorState("same"))
+
+            // Then
+            assertThat(observed).hasSize(2)
+            assertThat(observed).containsExactly("SAME", "SAME").inOrder()
+            assertThat(sut.value).isEqualTo("SAME")
+        }
     }
+
+    // region helpers
 
     data class SelectorState(val bla: String? = null) : State {
         override fun clone(): State = this.copy()
     }
+
+    // endregion
 }
