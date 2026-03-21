@@ -17,7 +17,7 @@
 package de.db.moredux.settings
 
 /**
- * A class to set up some MoRedux behaviour
+ * A class to set up some MoRedux behavior
  */
 object MoReduxSettings {
     enum class LogMode {

@@ -11,10 +11,10 @@ plugins {
     alias(libs.plugins.axion)
 
     /*
-     * Execute the following gradle task in order to find all outdated dependencies:
+     * Execute the following Gradle task in order to find all outdated dependencies:
      * ./gradlew dependencyUpdates
      *
-     * or just execute the dependecyUpdates of the "help" task in IntelliJ's gradle toolview
+     * or just execute the dependencyUpdates of the "help" task in IntelliJ's Gradle tool view
      */
     alias(libs.plugins.ben.manes)
 }
@@ -108,8 +108,8 @@ mavenPublishing {
         licenses {
             license {
                 name.set("The Apache License, Version 2.0")
-                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                distribution.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                distribution.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
             }
         }
         developers {

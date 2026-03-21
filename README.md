@@ -5,13 +5,17 @@
 
 Redux framework in Kotlin, inspired by the JS Redux framework (https://redux.js.org/).
 
-MoRedux is a predictable state management method. It centralizes the state of an application or of a part of an application and enforces strict rules on how the state can be changes. In MoRedux actions are dispatched, reducers determine how the state should be changed and updated and the state is made available to the entire application through the store, that contains and manages the state.
+MoRedux is a predictable state management method. It centralizes the state of an application or of a part of an
+application and enforces strict rules on how the state can be changes. In MoRedux actions are dispatched, reducers
+determine how the state should be changed and updated and the state is made available to the entire application through
+the store, that contains and manages the state.
 
 # Download
 
 Replace ```$VERSION$``` with the released version of your choice. The recommended version is the latest.
 
-Visit [the release page](https://github.com/dbvertrieb/MoRedux/releases) for a detailed list of all releases and their corresponding changelogs.
+Visit [the release page](https://github.com/dbvertrieb/MoRedux/releases) for a detailed list of all releases and their
+corresponding changelogs.
 
 ## gradle
 
@@ -36,9 +40,13 @@ dependencies {
     <version>$VERSION$</version>
 </dependency>
 ```
+
 # When to use MoRedux
 
-The Redux method ensures that state changes are predictable and easy to track, which is crucial in larger applications. If your application has a lot of shared state that needs to be accessible across multiple components or the state contains a lot of data,especially when the state is changed in bigger user interfaces, the Redux method in general helps to manage user interactions and state changes.
+The Redux method ensures that state changes are predictable and easy to track, which is crucial in larger applications.
+If your application has a lot of shared state that needs to be accessible across multiple components or the state
+contains a lot of data,especially when the state is changed in bigger user interfaces, the Redux method in general helps
+to manage user interactions and state changes.
 
 # Basic Usage
 
@@ -47,6 +55,7 @@ The Redux method ensures that state changes are predictable and easy to track, w
 * State
 * Action
 * Reducer
+* Middleware
 * Effect / Followup action
 * Store
 * StoreContainer
@@ -65,6 +74,17 @@ payload with additional data. They are dispatched to update the state in the sto
 
 A reducer is a piece of code that takes the current state and an action as arguments and returns a new state. Reducers
 specify how the state changes in response to an action. A Reducer always operates synchronously / on the main thread.
+A Reducer changes the state by returning a new state. The old state is never modified. A Reducer may also return
+additional results, such as follow-up actions or effects. A Reducer may be implemented as a class that extends the Reducer
+interface or as a simple function that takes the current state and an action as arguments and returns a new state.
+
+## Middleware
+
+Middleware is a piece of code that is before any reducer. Middleware can be used to perform
+side effects, such as logging, making API calls, or dispatching additional actions. A Middleware may also be registered
+to be executed only when a specific action is dispatched. A Middleware may change the action or even stop the action
+from being dispatched to the reducer. A Middleware always operates synchronously / on the main thread, but may 
+start asynchronous work, e.g. by starting a coroutine, and dispatch further actions when the asynchronous work is done.
 
 ## Effect
 
@@ -79,13 +99,13 @@ They are executed / redispatched right after the reducer finishes.
 
 ## StateObserver
 
-A stateobserver is a function that is executed upon state changed. Whenever a reducer finishes its work, all registered
-stateobservers are notified. Stateobservers (and Selectors - see below) are registered in a store.
+A StateObserver is a function that is executed upon state changed. Whenever a reducer finishes its work, all registered
+state observers are notified. State observers (and Selectors - see below) are registered in a store.
 
 ## Selectors
 
-Selectors are special types of stateobservers. Selectors are functions that extract specific pieces of the state from
-the store upon state change.They allow you to get the information
+Selectors are special types of state observers. Selectors are functions that extract specific pieces of the state from
+the store upon state change. They allow you to get the information
 from the state, without accessing the state of the store directly. A selector usually also applies some additional
 transformation to the piece of information it extracts from the state, e.g. a state contains a persons name and address
 all in lower case letters and a selector could now extract the family name and make sure the first letter is always a
@@ -99,12 +119,14 @@ the current state to the reducer responsible for that action.
 
 ## StoreContainer
 
-A storecontainer does not contain a state, but contains one or more stores. It dispatches actions passed to the
-storecontainer to the store that contains the reducer that is responsible for the action.
+A StoreContainer does not contain a state, but contains one or more stores. It dispatches actions passed to the
+store container to the store that contains the reducer that is responsible for the action.
 
 ## Logging
 
-The "logging component" is nothing Redux specific, but a simple tool to help you integrate MoRedux into your code. You can redirect all logging of MoRedux to the log mechanism of your choice (see ModReduxSettings). In addition, you can specify the amount of logs that are logged out. The possible settings are FULL, MINIMAL and DISABLED.
+The "logging component" is nothing Redux specific, but a simple tool to help you integrate MoRedux into your code. You
+can redirect all logging of MoRedux to the log mechanism of your choice (see ModReduxSettings). In addition, you can
+specify the amount of logs that are logged out. The possible settings are FULL, MINIMAL and DISABLED.
 
 # Examples
 
@@ -170,11 +192,12 @@ fun main() {
     store.dispatch(Add("Invite friends"))
     store.dispatch(Add("Cook dinner"))
     store.dispatch(SetDone(0))
-    
+
     // the unfinishedtodos StateFlow contains a list with the only value "Cook dinner"
     println(unfinishedTodos.value)
 }
 ```
+
 # License
 
 The content of this repository is licensed under the [Apache License, Version 2.0](LICENSE.txt).
