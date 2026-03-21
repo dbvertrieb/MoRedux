@@ -1,9 +1,9 @@
 [versions]
-kotlin = "2.1.10"
+kotlin = "2.3.20"
 axion = "1.21.1"
 vanniktech-publish = "0.29.0"
 kotlinx-coroutines = "1.10.2"
-junit-jupiter = "6.0.1"
+junit-jupiter = "6.0.3"
 google-truth = "1.4.5"
 mockito = "5.2.0"
 ben-manes = "0.51.0"
