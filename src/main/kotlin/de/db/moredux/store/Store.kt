@@ -315,7 +315,7 @@ class Store<STATE : State> private constructor(
                         dispatcher: Dispatcher,
                         state: STATE,
                         action: Action,
-                        next: (Action) -> Any
+                        next: (Action) -> Unit
                     ) {
                         middlewareCallback.invoke(dispatcher, state, action, next)
                     }
@@ -342,7 +342,7 @@ class Store<STATE : State> private constructor(
                     dispatcher: Dispatcher,
                     state: STATE,
                     action: ACTION,
-                    next: (Action) -> Any
+                    next: (Action) -> Unit
                 ) {
                     middlewareForActionCallback.invoke(dispatcher, state, action, next)
                 }

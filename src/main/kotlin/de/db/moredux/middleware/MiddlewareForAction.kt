@@ -20,5 +20,5 @@ interface MiddlewareForAction<STATE : State, ACTION : Action> : MiddlewareParent
      * If you want proper dispatch counters, or you want to dispatch actions via the stores
      * injected dispatcher, use the passed [dispatcher].
      */
-    operator fun invoke(dispatcher: Dispatcher, state: STATE, action: ACTION, next: (Action) -> Any)
+    operator fun invoke(dispatcher: Dispatcher, state: STATE, action: ACTION, next: (Action) -> Unit)
 }

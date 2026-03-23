@@ -28,7 +28,7 @@ class MiddlewareManagerTest {
                         dispatcher: Dispatcher,
                         state: PreferencesState,
                         action: Action,
-                        next: (Action) -> Any
+                        next: (Action) -> Unit
                     ) {
                         println("Dummy")
                     }
@@ -44,7 +44,7 @@ class MiddlewareManagerTest {
                         dispatcher: Dispatcher,
                         state: PreferencesState,
                         action: PreferencesAction.SetLightMode,
-                        next: (Action) -> Any
+                        next: (Action) -> Unit
                     ) {
                         println("Dummy")
                     }
@@ -179,7 +179,7 @@ class MiddlewareManagerTest {
                             dispatcher: Dispatcher,
                             state: PreferencesState,
                             action: Action,
-                            next: (Action) -> Any
+                            next: (Action) -> Unit
                         ) {
                             println("Dummy")
                         }
@@ -205,7 +205,7 @@ class MiddlewareManagerTest {
                             dispatcher: Dispatcher,
                             state: PreferencesState,
                             action: PreferencesAction.SetLightMode,
-                            next: (Action) -> Any
+                            next: (Action) -> Unit
                         ) {
                             println("Dummy")
                         }

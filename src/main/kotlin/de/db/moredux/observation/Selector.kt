@@ -28,18 +28,24 @@ import de.db.moredux.State
  * A State holds a list of Todos. One Selector provides a list Todos that have not been finished. Another Selector
  * provides the count of Todos that have been finished according to the current state.
  */
-abstract class Selector<STATE : State, VALUE> : StateObserver<STATE> {
+abstract class Selector<STATE : State, VALUE>(
+    protected val notificationGuard: NotificationGuard<VALUE> = NotificationGuard.NoDuplicates()
+) : StateObserver<STATE> {
 
     private val observerList = mutableListOf<(VALUE) -> Unit>()
 
     abstract fun map(state: STATE): VALUE
 
     override fun onStateChanged(state: STATE) {
-        val value = map(state)
-        notifyObservers(value)
+        val mappedValue = map(state)
+
+        if (notificationGuard.shouldNotify(mappedValue)) {
+            // notify observers
+            notifyObservers(mappedValue)
+        }
     }
 
-    protected fun notifyObservers(value:VALUE) {
+    protected fun notifyObservers(value: VALUE) {
         observerList.forEach { observer -> observer.invoke(value) }
     }
 
