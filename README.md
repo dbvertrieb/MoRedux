@@ -6,7 +6,7 @@
 Redux framework in Kotlin, inspired by the JS Redux framework (https://redux.js.org/).
 
 MoRedux is a predictable state management method. It centralizes the state of an application or of a part of an
-application and enforces strict rules on how the state can be changes. In MoRedux actions are dispatched, reducers
+application and enforces strict rules on how the state can be changed. In MoRedux actions are dispatched, reducers
 determine how the state should be changed and updated and the state is made available to the entire application through
 the store, that contains and manages the state.
 
@@ -74,13 +74,14 @@ payload with additional data. They are dispatched to update the state in the sto
 
 A reducer is a piece of code that takes the current state and an action as arguments and returns a new state. Reducers
 specify how the state changes in response to an action. A Reducer always operates synchronously / on the main thread.
-A Reducer changes the state by returning a new state. The old state is never modified. A Reducer may also return
-additional results, such as follow-up actions or effects. A Reducer may be implemented as a class that extends the Reducer
-interface or as a simple function that takes the current state and an action as arguments and returns a new state.
+A Reducer returns a new, modified version of the previous state.. The old state is never modified. A Reducer may
+also return additional results, such as follow-up actions or effects. A Reducer may be implemented as a class that
+extends the Reducer interface or as a simple function that takes the current state and an action as arguments and
+returns a new state.
 
 ## Middleware
 
-Middleware is a piece of code that is before any reducer. Middleware can be used to perform
+Middleware is a piece of code that is invoked before any reducer. Middleware can be used to perform
 side effects, such as logging, making API calls, or dispatching additional actions. A Middleware may also be registered
 to be executed only when a specific action is dispatched. A Middleware may change the action or even stop the action
 from being dispatched to the reducer. A Middleware always operates synchronously / on the main thread, but may 

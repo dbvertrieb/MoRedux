@@ -3,7 +3,7 @@ package de.db.moredux.observation
 interface NotificationGuard<VALUE> {
     fun shouldNotify(value: VALUE): Boolean
 
-    class AlwaysAllow<VALUE> : NotificationGuard<VALUE> {
+    class AlwaysNotify<VALUE> : NotificationGuard<VALUE> {
         override fun shouldNotify(value: VALUE): Boolean = true
     }
 

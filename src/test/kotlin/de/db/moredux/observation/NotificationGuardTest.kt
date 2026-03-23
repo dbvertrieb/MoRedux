@@ -11,9 +11,9 @@ import org.junit.jupiter.params.provider.MethodSource
 class NotificationGuardTest {
 
     @Nested
-    inner class AlwaysAllowTest {
+    inner class AlwaysNotifyTest {
 
-        private val sut = NotificationGuard.AlwaysAllow<Any?>()
+        private val sut = NotificationGuard.AlwaysNotify<Any?>()
 
         @Test
         fun `test shouldNotify always returns true`() {

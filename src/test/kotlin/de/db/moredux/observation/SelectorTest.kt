@@ -34,7 +34,7 @@ class SelectorTest {
         @Test
         fun `test observeSelector notifies observer on state change`() {
             // Given
-            val sut = createSut(NotificationGuard.AlwaysAllow())
+            val sut = createSut(NotificationGuard.AlwaysNotify())
             var observed = ""
             sut.observeSelector { value -> observed = value }
 
@@ -48,7 +48,7 @@ class SelectorTest {
         @Test
         fun `test removeAllSelectorObservers stops notifications`() {
             // Given
-            val sut = createSut(NotificationGuard.AlwaysAllow())
+            val sut = createSut(NotificationGuard.AlwaysNotify())
             var observed = ""
             sut.observeSelector { value -> observed = value }
             sut.onStateChanged(SelectorState("new value"))
@@ -98,12 +98,12 @@ class SelectorTest {
     }
 
     @Nested
-    inner class AlwaysAllowGuardTest {
+    inner class AlwaysNotifyGuardTest {
 
         @Test
         fun `test onStateChanged always notifies even for equal mapped value`() {
             // Given
-            val sut = createSut(NotificationGuard.AlwaysAllow())
+            val sut = createSut(NotificationGuard.AlwaysNotify())
             val observed = mutableListOf<String>()
             sut.observeSelector { value -> observed.add(value) }
 

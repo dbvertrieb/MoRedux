@@ -26,7 +26,7 @@ class SelectorToStateFlowTest {
 
     private fun createSut(notificationGuard: NotificationGuard<String>): SelectorToStateFlow<SelectorState, String> =
         object : SelectorToStateFlow<SelectorState, String>(MutableStateFlow("INITIAL VALUE"), notificationGuard) {
-            override fun map(state: SelectorState): String = state.bla?.uppercase().orEmpty()
+            override fun map(state: SelectorState): String = state.text?.uppercase().orEmpty()
         }
 
     @Nested
@@ -35,7 +35,7 @@ class SelectorToStateFlowTest {
         @Test
         fun `test observeSelector notifies observer on state change`() {
             // Given
-            val sut = createSut(NotificationGuard.AlwaysAllow())
+            val sut = createSut(NotificationGuard.AlwaysNotify())
             var observed = ""
             sut.observeSelector { value -> observed = value }
 
@@ -49,7 +49,7 @@ class SelectorToStateFlowTest {
         @Test
         fun `test removeAllSelectorObservers stops notifications`() {
             // Given
-            val sut = createSut(NotificationGuard.AlwaysAllow())
+            val sut = createSut(NotificationGuard.AlwaysNotify())
             var observed = ""
             sut.observeSelector { value -> observed = value }
             sut.onStateChanged(SelectorState("new value"))
@@ -65,7 +65,7 @@ class SelectorToStateFlowTest {
         @Test
         fun `test onStateChanged updates StateFlow value`() {
             // Given
-            val sut = createSut(NotificationGuard.AlwaysAllow())
+            val sut = createSut(NotificationGuard.AlwaysNotify())
 
             // When
             sut.onStateChanged(SelectorState("new value"))
@@ -112,12 +112,12 @@ class SelectorToStateFlowTest {
     }
 
     @Nested
-    inner class AlwaysAllowGuardTest {
+    inner class AlwaysNotifyGuardTest {
 
         @Test
         fun `test onStateChanged always notifies and updates StateFlow even for equal mapped value`() {
             // Given
-            val sut = createSut(NotificationGuard.AlwaysAllow())
+            val sut = createSut(NotificationGuard.AlwaysNotify())
             val observed = mutableListOf<String>()
             sut.observeSelector { value -> observed.add(value) }
 
@@ -134,7 +134,9 @@ class SelectorToStateFlowTest {
 
     // region helpers
 
-    data class SelectorState(val bla: String? = null) : State {
+    data class SelectorState(
+        val text: String? = null
+    ) : State {
         override fun clone(): State = this.copy()
     }
 
