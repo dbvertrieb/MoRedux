@@ -37,7 +37,8 @@ import kotlin.reflect.KClass
 class Store<STATE : State> private constructor(
     private val initialState: STATE,
     private val reducers: MutableMap<KClass<*>, Reducer<STATE, Action>>,
-    middlewareManagerBuilder: MiddlewareManager.Companion.Builder<STATE>
+    middlewareManagerBuilder: MiddlewareManager.Companion.Builder<STATE>,
+    private val synchronizedDispatch: Boolean
 ) : Dispatcher {
     private var _state: STATE = initialState
 
@@ -94,6 +95,19 @@ class Store<STATE : State> private constructor(
      * @param action the action to dispatch
      */
     override fun dispatch(action: Action) {
+        if (synchronizedDispatch) {
+            internalSynchronizedDispatch(action)
+        } else {
+            internalDispatch(action)
+        }
+    }
+
+    @Synchronized
+    private fun internalSynchronizedDispatch(action: Action) {
+        internalDispatch(action)
+    }
+
+    private fun internalDispatch(action: Action) {
         val currentDispatchCount = dispatchCounter.incrementAndGet()
         val logStore = LogStore(currentDispatchCount, state::class)
         logStore.d("Dispatch action: %s".format(action), MoReduxSettings.LogMode.MINIMAL)
@@ -230,6 +244,8 @@ class Store<STATE : State> private constructor(
          */
         val reducers: Map<KClass<*>, Reducer<STATE, Action>> = mutableMapOf()
 
+        private var synchronizedDispatch: Boolean = false
+
         /**
          * @param initialState the initialState is mandatory. Without an initial state, the Builder.build() method will
          * throw an Exception
@@ -237,6 +253,13 @@ class Store<STATE : State> private constructor(
          */
         fun withInitialState(initialState: STATE): Builder<STATE> = also {
             this.initialState = initialState
+        }
+
+        /**
+         * @param synchronizedDispatch if true, all dispatches ar synchronized
+         */
+        fun withSynchronizedDispatch(synchronizedDispatch: Boolean): Builder<STATE> = also {
+            this.synchronizedDispatch = synchronizedDispatch
         }
 
         /**
@@ -369,7 +392,8 @@ class Store<STATE : State> private constructor(
         fun build(): Store<STATE> = Store(
             initialState = checkNotNull(initialState) { "InitialState is not set" },
             reducers = reducers as MutableMap<KClass<*>, Reducer<STATE, Action>>,
-            middlewareManagerBuilder = middlewareManagerBuilder
+            middlewareManagerBuilder = middlewareManagerBuilder,
+            synchronizedDispatch = synchronizedDispatch
         )
     }
 }
