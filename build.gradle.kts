@@ -54,7 +54,6 @@ kotlin {
 // This should help testing MoRedux changes locally
 gradle.taskGraph.whenReady {
     val taskName = "publishToMavenLocal"
-    logger.info("publishToMavenLocal")
     val isSigningEnabled = allTasks.firstOrNull { it.name == taskName } == null
     if (!isSigningEnabled) {
         tasks.withType<Sign>().configureEach { onlyIf { isSigningEnabled } }
