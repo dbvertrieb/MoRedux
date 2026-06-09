@@ -25,6 +25,9 @@ import de.db.moredux.reducer.ReducerResult
 import de.db.moredux.settings.MoReduxSettings
 import de.db.moredux.settings.MoReduxSettings.LogMode
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
@@ -110,6 +113,50 @@ class StoreTest {
         assertThat(testReducer2Executed).isFalse()
         assertThat(callbackState).hasSize(1)
         assertThat(callbackState[0]).isEqualTo(StoreState().copy(bla = "Reducer 1"))
+    }
+
+    @ParameterizedTest
+    @MethodSource("testSynchronizationParameters")
+    fun `test dispatch parallel synchronized`(isSynchronized: Boolean, expectedBla: String) {
+        // Given
+        var testReducer1Executed = false
+        var testReducer2Executed = false
+        val store = Store.Builder<StoreState>()
+            .withInitialState(StoreState())
+            .withSynchronizedDispatch(isSynchronized)
+            .registerReducerToState<TestAction1> { state, _ ->
+                testReducer1Executed = true
+                Thread.sleep(1000)
+                state.copy(bla = "Reducer 1")
+            }
+            .registerReducerToState<TestAction2> { state, _ ->
+                testReducer2Executed = true
+                state.copy(bla = "Reducer 2")
+            }
+            .build()
+
+        val callbackState = mutableListOf<StoreState>()
+        store.addStateObserver { state -> callbackState.add(state) }
+
+        // When
+        val thread1 = Thread {
+            store.dispatch(TestAction1)
+        }
+        val thread2 = Thread {
+            store.dispatch(TestAction2)
+        }
+
+        thread1.start()
+        thread2.start()
+
+        thread1.join()
+        thread2.join()
+
+        // Then
+        assertThat(testReducer1Executed).isTrue()
+        assertThat(testReducer2Executed).isTrue()
+        assertThat(callbackState).hasSize(2)
+        assertThat(store.state.bla).isEqualTo(expectedBla)
     }
 
     @Test
@@ -346,4 +393,12 @@ class StoreTest {
     private data object TestAction1 : Action
     private data object TestAction2 : Action
     private data object TestAction3 : Action
+
+    companion object {
+        @JvmStatic
+        fun testSynchronizationParameters() = listOf(
+            Arguments.of(true, "Reducer 2"),
+            Arguments.of(false, "Reducer 1")
+        )
+    }
 }
