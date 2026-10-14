@@ -30,12 +30,13 @@ class StateObservationEventChannelTest {
     private val store: Store<StateObservationEventChannelState> = Store.Builder<StateObservationEventChannelState>()
         .withInitialState(StateObservationEventChannelState())
         .build()
-/*
     @Test
     fun `test addSelectorEventChannel with NotificationGuard NoDuplicates drops duplicate values`() = runBlocking {
-        // Given
+        // Given - capacity is set to UNLIMITED so that none of the synchronously sent values below
+        // get conflated away before the flow is collected
         val flow = store.addSelectorEventChannel(
             notificationGuard = NotificationGuard.NoDuplicates(),
+            capacity = Channel.UNLIMITED,
         ) { state -> state.bla }
 
         // When - the second state change maps to the same value as the first one
@@ -47,14 +48,14 @@ class StateObservationEventChannelTest {
         val values = flow.take(2).toList()
         assertThat(values).containsExactly("State counter 0", "State counter 2").inOrder()
     }
-    */
 
-/*
     @Test
     fun `test addSelectorEventChannel with NotificationGuard AlwaysNotify emits duplicate values`() = runBlocking {
-        // Given
+        // Given - capacity is set to UNLIMITED so that none of the synchronously sent values below
+        // get conflated away before the flow is collected
         val flow = store.addSelectorEventChannel(
             notificationGuard = NotificationGuard.AlwaysNotify(),
+            capacity = Channel.UNLIMITED,
         ) { state -> state.bla }
 
         // When - the second state change maps to the same value as the first one
@@ -65,7 +66,6 @@ class StateObservationEventChannelTest {
         val values = flow.take(2).toList()
         assertThat(values).containsExactly("State counter 0", "State counter 0").inOrder()
     }
-*/
     @Test
     fun `test addSelectorEventChannel with default conflated capacity behaves like a single live event`() = runBlocking {
         // Given
@@ -106,13 +106,14 @@ class StateObservationEventChannelTest {
         val value = flow.take(1).toList().first()
         assertThat(value).isEqualTo("State counter 0")
     }
-/*
     @Test
     fun `test addSelectorEventChannel with observer invokes observer for every mapped value`() = runBlocking {
-        // Given
+        // Given - capacity is set to UNLIMITED so that none of the synchronously sent values below
+        // get conflated away before the flow is collected
         val observedValues = mutableListOf<String?>()
         val flow = store.addSelectorEventChannel(
             notificationGuard = NotificationGuard.AlwaysNotify(),
+            capacity = Channel.UNLIMITED,
             observer = { value -> observedValues.add(value) },
         ) { state -> state.bla }
 
@@ -126,14 +127,15 @@ class StateObservationEventChannelTest {
         val values = flow.take(2).toList()
         assertThat(values).containsExactly("State counter 0", "State counter 0").inOrder()
     }
-*/
-    /*
+
     @Test
     fun `test addSelectorEventChannel with observer and NotificationGuard NoDuplicates drops duplicate channel values`() = runBlocking {
-        // Given
+        // Given - capacity is set to UNLIMITED so that none of the synchronously sent values below
+        // get conflated away before the flow is collected
         val observedValues = mutableListOf<String?>()
         val flow = store.addSelectorEventChannel(
             notificationGuard = NotificationGuard.NoDuplicates(),
+            capacity = Channel.UNLIMITED,
             observer = { value -> observedValues.add(value) },
         ) { state -> state.bla }
 
@@ -147,7 +149,6 @@ class StateObservationEventChannelTest {
         val values = flow.take(2).toList()
         assertThat(values).containsExactly("State counter 0", "State counter 2").inOrder()
     }
-*/
     data class StateObservationEventChannelState(val bla: String? = null) : State {
         override fun clone(): State = this.copy()
     }
