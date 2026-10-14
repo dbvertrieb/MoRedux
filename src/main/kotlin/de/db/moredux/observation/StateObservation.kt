@@ -71,6 +71,10 @@ fun <STATE : State, VALUE> Store<STATE>.addSelector(
  * other StateObserver.
  *
  * @param processCurrentStateImmediately if true, the current state will be pushed immediately into the passed [map]
+ * @param notificationGuard the [notificationGuard] is used to determine whether a mapped value should be published
+ * to the Selector or not. If you want to receive every mapped value, use [NotificationGuard.AlwaysNotify].
+ * If you only want to receive mapped values that are different from the previous mapped value,
+ * use [NotificationGuard.NoDuplicates].
  * @param observer in order to be able to process the current state immediately, an observer function has
  * to be passed as argument here. The Selector is created inside this function, which makes it impossible to set any
  * observer function before processing the current state. If [processCurrentStateImmediately] is true anf [observer]
@@ -81,10 +85,11 @@ fun <STATE : State, VALUE> Store<STATE>.addSelector(
  */
 fun <STATE : State, VALUE> Store<STATE>.addSelectorFromCallback(
     processCurrentStateImmediately: Boolean = false,
+    notificationGuard: NotificationGuard<VALUE> = NotificationGuard.NoDuplicates(),
     observer: ((VALUE) -> Unit)? = null,
     map: (STATE) -> VALUE
 ): Selector<STATE, VALUE> {
-    val selector = object : Selector<STATE, VALUE>() {
+    val selector = object : Selector<STATE, VALUE>(notificationGuard) {
         override fun map(state: STATE): VALUE = map(state)
     }
 
