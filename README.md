@@ -199,6 +199,57 @@ fun main() {
 }
 ```
 
+# Extension functions
+
+Besides registering a `Selector` or `StateObserver` instance directly, the `Store` offers a number of extension
+functions (`addStateObserver`, `addSelector`, `addSelectorFromCallback`, `addSelectorStateFlow` and
+`addSelectorEventChannel`) that let you register observers and selectors as simple callbacks, or that expose the
+selected values as Kotlin coroutines `StateFlow` or `Flow` instances, without having to implement a `StateObserver`
+or `Selector` subclass yourself.
+
+```kotlin
+// addStateObserver - register a plain callback that is notified on every state change
+store.addStateObserver { state ->
+    println("Current todos: ${state.todos}")
+}
+
+// addSelector - register a Selector instance, treated like any other StateObserver
+val selector1 = store.addSelector(selector = object : Selector<TodoState, Int>(NotificationGuard.NoDuplicates()) {
+    override fun map(state: TodoState): Int = state.todos.size
+})
+
+// addSelectorFromCallback - wrap a map function in a Selector, with an optional observer callback
+val selector2 = store.addSelectorFromCallback(
+    processCurrentStateImmediately = true,
+    notificationGuard = NotificationGuard.NoDuplicates(),
+    observer = { todoCount -> println("Todo count changed: $todoCount") }
+) { state -> state.todos.size }
+
+// addSelectorStateFlow - expose the selected value as a MutableStateFlow
+val unfinishedTodos = store.addSelectorStateFlow(emptyList()) { state ->
+    state.todos.filterIndexed { index, _ -> !state.done[index] }
+}
+
+// addSelectorEventChannel - expose the selected value as a Flow backed by a Channel
+val todoCountEvents = store.addSelectorEventChannel(
+    notificationGuard = NotificationGuard.NoDuplicates(),
+    capacity = Channel.UNLIMITED
+) { state -> state.todos.size }
+
+// addSelectorEventChannel - expose the selected value as a Flow backed by a Channel. Mimics the behaviour of a SingleLiveEvent
+val todoCountEventsAsSingleEvent = store.addSelectorEventChannel(
+    notificationGuard = NotificationGuard.NoDuplicates(),
+    capacity = Channel.CONFLATED
+) { state -> state.todos.size }
+
+// addSelectorEventChannel - same as above, but additionally invokes an observer for every mapped value
+val todoCountEventsWithObserver = store.addSelectorEventChannel(
+    notificationGuard = NotificationGuard.AlwaysNotify(),
+    capacity = Channel.UNLIMITED,
+    observer = { todoCount -> println("Observed todo count: $todoCount") }
+) { state -> state.todos.size }
+```
+
 # License
 
 The content of this repository is licensed under the [Apache License, Version 2.0](LICENSE.txt).
