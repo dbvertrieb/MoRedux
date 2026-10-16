@@ -27,9 +27,10 @@ import org.junit.jupiter.api.Test
 
 class StateObservationEventChannelTest {
 
-    private val store: Store<StateObservationEventChannelState> = Store.Builder<StateObservationEventChannelState>()
+    private val store = Store.Builder<StateObservationEventChannelState>()
         .withInitialState(StateObservationEventChannelState())
         .build()
+
     @Test
     fun `test addSelectorEventChannel with NotificationGuard NoDuplicates drops duplicate values`() = runBlocking {
         // Given - capacity is set to UNLIMITED so that none of the synchronously sent values below
@@ -67,7 +68,7 @@ class StateObservationEventChannelTest {
         assertThat(values).containsExactly("State counter 0", "State counter 0").inOrder()
     }
     @Test
-    fun `test addSelectorEventChannel with default conflated capacity behaves like a single live event`() = runBlocking {
+    fun `test addSelectorEventChannel with default conflated capacity remembers only the most recent value`() = runBlocking {
         // Given
         val flow = store.addSelectorEventChannel { state -> state.bla }
 

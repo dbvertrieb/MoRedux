@@ -236,7 +236,7 @@ val todoCountEvents = store.addSelectorEventChannel(
     capacity = Channel.UNLIMITED
 ) { state -> state.todos.size }
 
-// addSelectorEventChannel - expose the selected value as a Flow backed by a Channel. Mimics the behaviour of a SingleLiveEvent
+// addSelectorEventChannel - expose the selected value as a Flow backed by a Channel. A CONFLATED EventChannel remembers only the most recent value
 val todoCountEventsAsSingleEvent = store.addSelectorEventChannel(
     notificationGuard = NotificationGuard.NoDuplicates(),
     capacity = Channel.CONFLATED
